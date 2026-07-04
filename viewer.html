@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>rt-go viewer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #101114;
+        color: #e7e7e7;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        display: grid;
+        grid-template-rows: 1fr auto;
+      }
+
+      #frame {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: auto;
+        cursor: crosshair;
+      }
+
+      #bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 14px;
+        background: #1d2026;
+        border-top: 1px solid #30343d;
+        font-size: 14px;
+      }
+
+      button,
+      select {
+        background: #2b3038;
+        color: #f2f2f2;
+        border: 1px solid #454b57;
+        border-radius: 6px;
+        padding: 6px 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="frame" alt="ray traced scene">
+
+    <div id="bar">
+      <span>WASD move | Shift/Ctrl up-down | Q/E focus | F depth of field | click image for mouse look</span>
+      <span>
+        <span id="focus"></span>
+        <span id="dof"></span>
+        <select id="size">
+          <option value="320x180">320 x 180</option>
+          <option value="480x270" selected>480 x 270</option>
+          <option value="640x360">640 x 360</option>
+          <option value="800x450">800 x 450</option>
+          <option value="960x540">960 x 540</option>
+          <option value="1280x720">1280 x 720</option>
+        </select>
+        <button id="render">render</button>
+      </span>
+    </div>
+
+    <script>
+      const frame = document.getElementById("frame");
+      const size = document.getElementById("size");
+      const renderButton = document.getElementById("render");
+      const focusLabel = document.getElementById("focus");
+      const dofLabel = document.getElementById("dof");
+      const state = {
+        px: 0,
+        py: 1,
+        pz: 2,
+        yaw: -Math.PI / 2,
+        pitch: -0.25,
+        focus: 4,
+        dof: false,
+      };
+      const keys = new Set();
+      let rendering = false;
+      let dirty = true;
+      let lastRenderRequest = 0;
+
+      function direction() {
+        const cp = Math.cos(state.pitch);
+        return {
+          x: cp * Math.cos(state.yaw),
+          y: Math.sin(state.pitch),
+          z: cp * Math.sin(state.yaw),
+        };
+      }
+
+      function rightVector(dir) {
+        const x = -dir.z;
+        const z = dir.x;
+        const len = Math.hypot(x, z) || 1;
+        return { x: x / len, y: 0, z: z / len };
+      }
+
+      function step(dt) {
+        const speed = 1.8 * dt;
+        const focusSpeed = 3.0 * dt;
+        const dir = direction();
+        const right = rightVector(dir);
+        let moved = false;
+
+        if (keys.has("w")) {
+          state.px += dir.x * speed;
+          state.py += dir.y * speed;
+          state.pz += dir.z * speed;
+          moved = true;
+        }
+        if (keys.has("s")) {
+          state.px -= dir.x * speed;
+          state.py -= dir.y * speed;
+          state.pz -= dir.z * speed;
+          moved = true;
+        }
+        if (keys.has("d")) {
+          state.px += right.x * speed;
+          state.pz += right.z * speed;
+          moved = true;
+        }
+        if (keys.has("a")) {
+          state.px -= right.x * speed;
+          state.pz -= right.z * speed;
+          moved = true;
+        }
+        if (keys.has("shift")) {
+          state.py += speed;
+          moved = true;
+        }
+        if (keys.has("control")) {
+          state.py -= speed;
+          moved = true;
+        }
+        if (keys.has("q")) {
+          state.focus = Math.max(0.1, state.focus - focusSpeed);
+          moved = true;
+        }
+        if (keys.has("e")) {
+          state.focus += focusSpeed;
+          moved = true;
+        }
+
+        if (moved) {
+          dirty = true;
+          updateFocusLabel();
+        }
+      }
+
+      function updateFocusLabel() {
+        focusLabel.textContent = `focus ${state.focus.toFixed(1)}`;
+      }
+
+      function updateDOFLabel() {
+        dofLabel.textContent = state.dof ? "dof on" : "dof off";
+      }
+
+      function isViewerKey(key) {
+        return ["w", "a", "s", "d", "q", "e", "f", "shift", "control"].includes(key);
+      }
+
+      async function render() {
+        if (rendering || !dirty) retSampleurn;
+        rendering = true;
+        lastRenderRequest = performance.now();
+        dirty = false;
+
+        const [width, height] = size.value.split("x").map(Number);
+        const params = new URLSearchParams({
+          width,
+          height,
+          px: state.px.toFixed(4),
+          py: state.py.toFixed(4),
+          pz: state.pz.toFixed(4),
+          yaw: state.yaw.toFixed(4),
+          pitch: state.pitch.toFixed(4),
+          focus: state.focus.toFixed(4),
+          dof: state.dof ? "1" : "0",
+        });
+
+        const response = await fetch("/render?" + params);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const old = frame.src;
+        frame.src = url;
+        if (old.startsWith("blob:")) URL.revokeObjectURL(old);
+
+        rendering = false;
+        if (dirty) render();
+      }
+
+      let previous = performance.now();
+      function loop(now) {
+        step(Math.min((now - previous) / 1000, 0.05));
+        previous = now;
+        if (dirty && now - lastRenderRequest > 80) render();
+        requestAnimationFrame(loop);
+      }
+
+      document.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+        if (!isViewerKey(key)) return;
+        event.preventDefault();
+        if (key === "f" && !keys.has("f")) {
+          state.dof = !state.dof;
+          dirty = true;
+          updateDOFLabel();
+        }
+        keys.add(key);
+      });
+
+      document.addEventListener("keyup", (event) => {
+        const key = event.key.toLowerCase();
+        if (!isViewerKey(key)) return;
+        event.preventDefault();
+        keys.delete(key);
+      });
+
+      document.addEventListener("mousemove", (event) => {
+        if (document.pointerLockElement !== frame) return;
+        state.yaw += event.movementX * 0.003;
+        state.pitch = Math.max(-1.45, Math.min(1.45, state.pitch - event.movementY * 0.003));
+        dirty = true;
+      });
+
+      frame.addEventListener("click", () => frame.requestPointerLock());
+
+      renderButton.addEventListener("click", () => {
+        dirty = true;
+        render();
+      });
+
+      size.addEventListener("change", () => {
+        dirty = true;
+        render();
+      });
+
+      updateFocusLabel();
+      updateDOFLabel();
+      render();
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
