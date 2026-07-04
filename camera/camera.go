@@ -1,6 +1,19 @@
 package camera
 
-import rtmath "github.com/aayushkdev/rt-go/math"
+import (
+	stdmath "math"
+
+	rtmath "github.com/aayushkdev/rt-go/math"
+)
+
+type Config struct {
+	ImageWidth  int
+	AspectRatio float64
+	VFov        float64
+	LookFrom    rtmath.Point3
+	LookAt      rtmath.Point3
+	VUp         rtmath.Vec3
+}
 
 type Camera struct {
 	ImageWidth  int
@@ -12,31 +25,50 @@ type Camera struct {
 	PixelDeltaV rtmath.Vec3
 }
 
-func New(imageWidth int, aspectRatio float64) Camera {
-	imageHeight := int(float64(imageWidth) / aspectRatio)
+func New(config Config) Camera {
+	if config.ImageWidth == 0 {
+		config.ImageWidth = 100
+	}
+	if config.AspectRatio == 0 {
+		config.AspectRatio = 1
+	}
+	if config.VFov == 0 {
+		config.VFov = 90
+	}
+	if config.VUp.NearZero() {
+		config.VUp = rtmath.NewVec3(0, 1, 0)
+	}
+
+	imageHeight := int(float64(config.ImageWidth) / config.AspectRatio)
 	if imageHeight < 1 {
 		imageHeight = 1
 	}
 
-	focalLength := 1.0
-	viewportHeight := 2.0
-	viewportWidth := viewportHeight * float64(imageWidth) / float64(imageHeight)
-	cameraCenter := rtmath.NewVec3(0, 0, 0)
+	cameraCenter := config.LookFrom
+	focalLength := config.LookFrom.Sub(config.LookAt).Length()
+	theta := degreesToRadians(config.VFov)
+	h := stdmath.Tan(theta / 2)
+	viewportHeight := 2 * h * focalLength
+	viewportWidth := viewportHeight * float64(config.ImageWidth) / float64(imageHeight)
 
-	viewportU := rtmath.NewVec3(viewportWidth, 0, 0)
-	viewportV := rtmath.NewVec3(0, -viewportHeight, 0)
+	w := rtmath.UnitVector(config.LookFrom.Sub(config.LookAt))
+	u := rtmath.UnitVector(rtmath.Cross(config.VUp, w))
+	v := rtmath.Cross(w, u)
 
-	pixelDeltaU := viewportU.Div(float64(imageWidth))
+	viewportU := u.Mul(viewportWidth)
+	viewportV := v.Neg().Mul(viewportHeight)
+
+	pixelDeltaU := viewportU.Div(float64(config.ImageWidth))
 	pixelDeltaV := viewportV.Div(float64(imageHeight))
 
 	viewportUpperLeft := cameraCenter.
-		Sub(rtmath.NewVec3(0, 0, focalLength)).
+		Sub(w.Mul(focalLength)).
 		Sub(viewportU.Div(2)).
 		Sub(viewportV.Div(2))
 	pixel00 := viewportUpperLeft.Add(pixelDeltaU.Add(pixelDeltaV).Mul(0.5))
 
 	return Camera{
-		ImageWidth:  imageWidth,
+		ImageWidth:  config.ImageWidth,
 		ImageHeight: imageHeight,
 		Center:      cameraCenter,
 		Pixel00:     pixel00,
@@ -56,4 +88,8 @@ func (c Camera) RayForPixelSample(i, j int, offsetU, offsetV float64) rtmath.Ray
 	rayDirection := pixelCenter.Sub(c.Center)
 
 	return rtmath.NewRay(c.Center, rayDirection)
+}
+
+func degreesToRadians(degrees float64) float64 {
+	return degrees * rtmath.Pi / 180
 }
