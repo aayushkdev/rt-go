@@ -13,10 +13,14 @@ import (
 
 type Renderer struct {
 	SamplesPerPixel int
+	MaxDepth        int
 }
 
 func NewRenderer() Renderer {
-	return Renderer{SamplesPerPixel: 10}
+	return Renderer{
+		SamplesPerPixel: 10,
+		MaxDepth:        50,
+	}
 }
 
 func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath string) error {
@@ -34,7 +38,7 @@ func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath s
 			pixelColor := rtmath.NewVec3(0, 0, 0)
 			for sample := 0; sample < r.SamplesPerPixel; sample++ {
 				ray := cam.RayForPixelSample(i, j, sampleOffset(), sampleOffset())
-				pixelColor = pixelColor.Add(r.rayColor(ray, world))
+				pixelColor = pixelColor.Add(r.rayColor(ray, world, r.MaxDepth))
 			}
 			rtimage.WriteColor(file, pixelColor, r.SamplesPerPixel)
 		}
@@ -45,11 +49,17 @@ func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath s
 	return nil
 }
 
-func (r Renderer) rayColor(ray rtmath.Ray, world objects.Hittable) rtmath.Color {
-	record, hit := world.Hit(ray, rtmath.NewInterval(0, stdmath.Inf(1)))
+func (r Renderer) rayColor(ray rtmath.Ray, world objects.Hittable, depth int) rtmath.Color {
+	if depth <= 0 {
+		return rtmath.NewVec3(0, 0, 0)
+	}
+
+	record, hit := world.Hit(ray, rtmath.NewInterval(0.001, stdmath.Inf(1)))
 	if hit {
-		normal := record.Normal
-		return rtmath.NewVec3(normal.X+1, normal.Y+1, normal.Z+1).Mul(0.5)
+		direction := record.Normal.Add(rtmath.RandomUnitVector())
+		bouncedRay := rtmath.NewRay(record.Point, direction)
+
+		return r.rayColor(bouncedRay, world, depth-1).Mul(0.5)
 	}
 
 	unitDirection := rtmath.UnitVector(ray.Direction)
