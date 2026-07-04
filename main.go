@@ -7,9 +7,16 @@ import (
 	"github.com/aayushkdev/rt-go/camera"
 	rtimage "github.com/aayushkdev/rt-go/image"
 	rtmath "github.com/aayushkdev/rt-go/math"
+	"github.com/aayushkdev/rt-go/objects"
 )
 
-func rayColor(ray rtmath.Ray) rtmath.Color {
+func rayColor(ray rtmath.Ray, world objects.Hittable) rtmath.Color {
+	record, hit := world.Hit(ray, 0, 1.0e30)
+	if hit {
+		normal := record.Normal
+		return rtmath.NewVec3(normal.X+1, normal.Y+1, normal.Z+1).Mul(0.5)
+	}
+
 	unitDirection := rtmath.UnitVector(ray.Direction)
 	a := 0.5 * (unitDirection.Y + 1.0)
 
@@ -21,6 +28,9 @@ func rayColor(ray rtmath.Ray) rtmath.Color {
 
 func main() {
 	cam := camera.New(400, 16.0/9.0)
+	world := objects.NewWorld(
+		objects.NewSphere(rtmath.NewVec3(0, 0, -1), 0.5),
+	)
 
 	file, err := os.Create("image.ppm")
 	if err != nil {
@@ -35,7 +45,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\rScanlines remaining: %d ", cam.ImageHeight-j)
 		for i := 0; i < cam.ImageWidth; i++ {
 			ray := cam.RayForPixel(i, j)
-			rtimage.WriteColor(file, rayColor(ray))
+			rtimage.WriteColor(file, rayColor(ray, world))
 		}
 	}
 
