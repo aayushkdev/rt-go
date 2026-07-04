@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	stdmath "math"
 	"os"
 
 	"github.com/aayushkdev/rt-go/camera"
@@ -11,7 +12,7 @@ import (
 )
 
 func rayColor(ray rtmath.Ray, world objects.Hittable) rtmath.Color {
-	record, hit := world.Hit(ray, 0, 1.0e30)
+	record, hit := world.Hit(ray, rtmath.NewInterval(0, stdmath.Inf(1)))
 	if hit {
 		normal := record.Normal
 		return rtmath.NewVec3(normal.X+1, normal.Y+1, normal.Z+1).Mul(0.5)
@@ -30,6 +31,7 @@ func main() {
 	cam := camera.New(400, 16.0/9.0)
 	world := objects.NewWorld(
 		objects.NewSphere(rtmath.NewVec3(0, 0, -1), 0.5),
+		objects.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100),
 	)
 
 	file, err := os.Create("image.ppm")

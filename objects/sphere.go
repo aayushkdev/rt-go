@@ -15,7 +15,7 @@ func NewSphere(center rtmath.Point3, radius float64) Sphere {
 	return Sphere{Center: center, Radius: stdmath.Max(0, radius)}
 }
 
-func (s Sphere) Hit(ray rtmath.Ray, tMin, tMax float64) (HitRecord, bool) {
+func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 	oc := s.Center.Sub(ray.Origin)
 	a := ray.Direction.LengthSquared()
 	h := rtmath.Dot(ray.Direction, oc)
@@ -28,9 +28,9 @@ func (s Sphere) Hit(ray rtmath.Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	sqrtd := stdmath.Sqrt(discriminant)
 	root := (h - sqrtd) / a
-	if root <= tMin || tMax <= root {
+	if !rayT.Surrounds(root) {
 		root = (h + sqrtd) / a
-		if root <= tMin || tMax <= root {
+		if !rayT.Surrounds(root) {
 			return HitRecord{}, false
 		}
 	}

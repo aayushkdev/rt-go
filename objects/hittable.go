@@ -19,5 +19,5 @@ func (h *HitRecord) SetFaceNormal(ray rtmath.Ray, outwardNormal rtmath.Vec3) {
 }
 
 type Hittable interface {
-	Hit(ray rtmath.Ray, tMin, tMax float64) (HitRecord, bool)
+	Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool)
 }

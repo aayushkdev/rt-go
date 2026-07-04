@@ -23,13 +23,13 @@ func (w *World) Add(object Hittable) {
 	w.Objects = append(w.Objects, object)
 }
 
-func (w World) Hit(ray rtmath.Ray, tMin, tMax float64) (HitRecord, bool) {
-	closest := tMax
+func (w World) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
+	closest := rayT.Max
 	hitAnything := false
 	closestRecord := HitRecord{}
 
 	for _, object := range w.Objects {
-		record, hit := object.Hit(ray, tMin, closest)
+		record, hit := object.Hit(ray, rtmath.NewInterval(rayT.Min, closest))
 		if hit {
 			hitAnything = true
 			closest = record.T
