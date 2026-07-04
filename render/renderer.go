@@ -11,10 +11,12 @@ import (
 	"github.com/aayushkdev/rt-go/objects"
 )
 
-type Renderer struct{}
+type Renderer struct {
+	SamplesPerPixel int
+}
 
 func NewRenderer() Renderer {
-	return Renderer{}
+	return Renderer{SamplesPerPixel: 10}
 }
 
 func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath string) error {
@@ -29,8 +31,12 @@ func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath s
 	for j := 0; j < cam.ImageHeight; j++ {
 		fmt.Fprintf(os.Stderr, "\rScanlines remaining: %d ", cam.ImageHeight-j)
 		for i := 0; i < cam.ImageWidth; i++ {
-			ray := cam.RayForPixel(i, j)
-			rtimage.WriteColor(file, r.rayColor(ray, world))
+			pixelColor := rtmath.NewVec3(0, 0, 0)
+			for sample := 0; sample < r.SamplesPerPixel; sample++ {
+				ray := cam.RayForPixelSample(i, j, sampleOffset(), sampleOffset())
+				pixelColor = pixelColor.Add(r.rayColor(ray, world))
+			}
+			rtimage.WriteColor(file, pixelColor, r.SamplesPerPixel)
 		}
 	}
 
@@ -53,4 +59,8 @@ func (r Renderer) rayColor(ray rtmath.Ray, world objects.Hittable) rtmath.Color 
 	blue := rtmath.NewVec3(0.5, 0.7, 1.0)
 
 	return white.Mul(1.0 - a).Add(blue.Mul(a))
+}
+
+func sampleOffset() float64 {
+	return rtmath.RandomFloat64() - 0.5
 }

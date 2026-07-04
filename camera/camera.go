@@ -46,9 +46,13 @@ func New(imageWidth int, aspectRatio float64) Camera {
 }
 
 func (c Camera) RayForPixel(i, j int) rtmath.Ray {
+	return c.RayForPixelSample(i, j, 0, 0)
+}
+
+func (c Camera) RayForPixelSample(i, j int, offsetU, offsetV float64) rtmath.Ray {
 	pixelCenter := c.Pixel00.
-		Add(c.PixelDeltaU.Mul(float64(i))).
-		Add(c.PixelDeltaV.Mul(float64(j)))
+		Add(c.PixelDeltaU.Mul(float64(i) + offsetU)).
+		Add(c.PixelDeltaV.Mul(float64(j) + offsetV))
 	rayDirection := pixelCenter.Sub(c.Center)
 
 	return rtmath.NewRay(c.Center, rayDirection)
