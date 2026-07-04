@@ -31,3 +31,12 @@ func RandomUnitVector() Vec3 {
 		}
 	}
 }
+
+func RandomInUnitDisk() Vec3 {
+	for {
+		p := NewVec3(RandomFloat64Range(-1, 1), RandomFloat64Range(-1, 1), 0)
+		if p.LengthSquared() < 1 {
+			return p
+		}
+	}
+}

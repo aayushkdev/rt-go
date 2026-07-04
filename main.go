@@ -13,12 +13,14 @@ import (
 
 func main() {
 	cam := camera.New(camera.Config{
-		ImageWidth:  800,
-		AspectRatio: 16.0 / 9.0,
-		VFov:        20,
-		LookFrom:    rtmath.NewVec3(-2, 2, 1),
-		LookAt:      rtmath.NewVec3(0, 0, -1),
-		VUp:         rtmath.NewVec3(0, 1, 0),
+		ImageWidth:   800,
+		AspectRatio:  16.0 / 9.0,
+		VFov:         20,
+		LookFrom:     rtmath.NewVec3(-2, 2, 1),
+		LookAt:       rtmath.NewVec3(0, 0, -1),
+		VUp:          rtmath.NewVec3(0, 1, 0),
+		DefocusAngle: 0,
+		FocusDist:    2.0,
 	})
 	materialGround := materials.NewLambertian(rtmath.NewVec3(0.8, 0.8, 0.0))
 	materialCenter := materials.NewLambertian(rtmath.NewVec3(0.1, 0.2, 0.5))

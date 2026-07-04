@@ -7,12 +7,14 @@ import (
 )
 
 type Config struct {
-	ImageWidth  int
-	AspectRatio float64
-	VFov        float64
-	LookFrom    rtmath.Point3
-	LookAt      rtmath.Point3
-	VUp         rtmath.Vec3
+	ImageWidth   int
+	AspectRatio  float64
+	VFov         float64
+	LookFrom     rtmath.Point3
+	LookAt       rtmath.Point3
+	VUp          rtmath.Vec3
+	DefocusAngle float64
+	FocusDist    float64
 }
 
 type Camera struct {
@@ -23,6 +25,9 @@ type Camera struct {
 	Pixel00     rtmath.Point3
 	PixelDeltaU rtmath.Vec3
 	PixelDeltaV rtmath.Vec3
+	DefocusU    rtmath.Vec3
+	DefocusV    rtmath.Vec3
+	Defocus     bool
 }
 
 func New(config Config) Camera {
@@ -38,6 +43,9 @@ func New(config Config) Camera {
 	if config.VUp.NearZero() {
 		config.VUp = rtmath.NewVec3(0, 1, 0)
 	}
+	if config.FocusDist == 0 {
+		config.FocusDist = config.LookFrom.Sub(config.LookAt).Length()
+	}
 
 	imageHeight := int(float64(config.ImageWidth) / config.AspectRatio)
 	if imageHeight < 1 {
@@ -45,10 +53,9 @@ func New(config Config) Camera {
 	}
 
 	cameraCenter := config.LookFrom
-	focalLength := config.LookFrom.Sub(config.LookAt).Length()
 	theta := degreesToRadians(config.VFov)
 	h := stdmath.Tan(theta / 2)
-	viewportHeight := 2 * h * focalLength
+	viewportHeight := 2 * h * config.FocusDist
 	viewportWidth := viewportHeight * float64(config.ImageWidth) / float64(imageHeight)
 
 	w := rtmath.UnitVector(config.LookFrom.Sub(config.LookAt))
@@ -62,10 +69,11 @@ func New(config Config) Camera {
 	pixelDeltaV := viewportV.Div(float64(imageHeight))
 
 	viewportUpperLeft := cameraCenter.
-		Sub(w.Mul(focalLength)).
+		Sub(w.Mul(config.FocusDist)).
 		Sub(viewportU.Div(2)).
 		Sub(viewportV.Div(2))
 	pixel00 := viewportUpperLeft.Add(pixelDeltaU.Add(pixelDeltaV).Mul(0.5))
+	defocusRadius := config.FocusDist * stdmath.Tan(degreesToRadians(config.DefocusAngle/2))
 
 	return Camera{
 		ImageWidth:  config.ImageWidth,
@@ -74,6 +82,9 @@ func New(config Config) Camera {
 		Pixel00:     pixel00,
 		PixelDeltaU: pixelDeltaU,
 		PixelDeltaV: pixelDeltaV,
+		DefocusU:    u.Mul(defocusRadius),
+		DefocusV:    v.Mul(defocusRadius),
+		Defocus:     config.DefocusAngle > 0,
 	}
 }
 
@@ -85,11 +96,21 @@ func (c Camera) RayForPixelSample(i, j int, offsetU, offsetV float64) rtmath.Ray
 	pixelCenter := c.Pixel00.
 		Add(c.PixelDeltaU.Mul(float64(i) + offsetU)).
 		Add(c.PixelDeltaV.Mul(float64(j) + offsetV))
-	rayDirection := pixelCenter.Sub(c.Center)
+	rayOrigin := c.rayOrigin()
+	rayDirection := pixelCenter.Sub(rayOrigin)
 
-	return rtmath.NewRay(c.Center, rayDirection)
+	return rtmath.NewRay(rayOrigin, rayDirection)
 }
 
 func degreesToRadians(degrees float64) float64 {
 	return degrees * rtmath.Pi / 180
+}
+
+func (c Camera) rayOrigin() rtmath.Point3 {
+	if !c.Defocus {
+		return c.Center
+	}
+
+	p := rtmath.RandomInUnitDisk()
+	return c.Center.Add(c.DefocusU.Mul(p.X)).Add(c.DefocusV.Mul(p.Y))
 }
