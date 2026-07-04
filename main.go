@@ -15,9 +15,13 @@ func main() {
 	cam := camera.New(800, 16.0/9.0)
 	materialGround := materials.NewLambertian(rtmath.NewVec3(0.8, 0.8, 0.0))
 	materialCenter := materials.NewLambertian(rtmath.NewVec3(0.1, 0.2, 0.5))
+	materialLeft := materials.NewMetal(rtmath.NewVec3(0.8, 0.8, 0.8), 0)
+	materialRight := materials.NewMetal(rtmath.NewVec3(0.8, 0.6, 0.2), 0.5)
 
 	world := objects.NewWorld(
-		objects.NewSphere(rtmath.NewVec3(0, 0, -1), 0.5, materialCenter),
+		objects.NewSphere(rtmath.NewVec3(0, 0, -3), 0.5, materialLeft),
+		objects.NewSphere(rtmath.NewVec3(-1, 0, -2), 0.5, materialCenter),
+		objects.NewSphere(rtmath.NewVec3(1, 0, -2), 0.5, materialRight),
 		objects.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100, materialGround),
 	)
 

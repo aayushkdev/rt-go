@@ -72,3 +72,7 @@ func Cross(a, b Vec3) Vec3 {
 func UnitVector(v Vec3) Vec3 {
 	return v.Unit()
 }
+
+func Reflect(v, normal Vec3) Vec3 {
+	return v.Sub(normal.Mul(2 * Dot(v, normal)))
+}
