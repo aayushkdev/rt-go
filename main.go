@@ -5,16 +5,20 @@ import (
 	"os"
 
 	"github.com/aayushkdev/rt-go/camera"
+	"github.com/aayushkdev/rt-go/materials"
 	rtmath "github.com/aayushkdev/rt-go/math"
 	"github.com/aayushkdev/rt-go/objects"
 	"github.com/aayushkdev/rt-go/render"
 )
 
 func main() {
-	cam := camera.New(400, 16.0/9.0)
+	cam := camera.New(800, 16.0/9.0)
+	materialGround := materials.NewLambertian(rtmath.NewVec3(0.8, 0.8, 0.0))
+	materialCenter := materials.NewLambertian(rtmath.NewVec3(0.1, 0.2, 0.5))
+
 	world := objects.NewWorld(
-		objects.NewSphere(rtmath.NewVec3(0, 0, -1), 0.5),
-		objects.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100),
+		objects.NewSphere(rtmath.NewVec3(0, 0, -1), 0.5, materialCenter),
+		objects.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100, materialGround),
 	)
 
 	renderer := render.NewRenderer()

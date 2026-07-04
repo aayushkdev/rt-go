@@ -3,16 +3,18 @@ package objects
 import (
 	stdmath "math"
 
+	"github.com/aayushkdev/rt-go/materials"
 	rtmath "github.com/aayushkdev/rt-go/math"
 )
 
 type Sphere struct {
-	Center rtmath.Point3
-	Radius float64
+	Center   rtmath.Point3
+	Radius   float64
+	Material materials.Material
 }
 
-func NewSphere(center rtmath.Point3, radius float64) Sphere {
-	return Sphere{Center: center, Radius: stdmath.Max(0, radius)}
+func NewSphere(center rtmath.Point3, radius float64, material materials.Material) Sphere {
+	return Sphere{Center: center, Radius: stdmath.Max(0, radius), Material: material}
 }
 
 func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
@@ -36,8 +38,11 @@ func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 	}
 
 	record := HitRecord{
-		T:     root,
-		Point: ray.At(root),
+		HitInfo: materials.HitInfo{
+			T:     root,
+			Point: ray.At(root),
+		},
+		Material: s.Material,
 	}
 	outwardNormal := record.Point.Sub(s.Center).Div(s.Radius)
 	record.SetFaceNormal(ray, outwardNormal)

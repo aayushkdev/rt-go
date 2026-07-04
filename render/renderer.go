@@ -56,10 +56,12 @@ func (r Renderer) rayColor(ray rtmath.Ray, world objects.Hittable, depth int) rt
 
 	record, hit := world.Hit(ray, rtmath.NewInterval(0.001, stdmath.Inf(1)))
 	if hit {
-		direction := record.Normal.Add(rtmath.RandomUnitVector())
-		bouncedRay := rtmath.NewRay(record.Point, direction)
+		attenuation, scattered, ok := record.Material.Scatter(ray, record.HitInfo)
+		if !ok {
+			return rtmath.NewVec3(0, 0, 0)
+		}
 
-		return r.rayColor(bouncedRay, world, depth-1).Mul(0.5)
+		return attenuation.MulVec(r.rayColor(scattered, world, depth-1))
 	}
 
 	unitDirection := rtmath.UnitVector(ray.Direction)

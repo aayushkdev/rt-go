@@ -1,12 +1,13 @@
 package objects
 
-import rtmath "github.com/aayushkdev/rt-go/math"
+import (
+	"github.com/aayushkdev/rt-go/materials"
+	rtmath "github.com/aayushkdev/rt-go/math"
+)
 
 type HitRecord struct {
-	Point     rtmath.Point3
-	Normal    rtmath.Vec3
-	T         float64
-	FrontFace bool
+	materials.HitInfo
+	Material materials.Material
 }
 
 func (h *HitRecord) SetFaceNormal(ray rtmath.Ray, outwardNormal rtmath.Vec3) {
