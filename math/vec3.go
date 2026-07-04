@@ -76,3 +76,11 @@ func UnitVector(v Vec3) Vec3 {
 func Reflect(v, normal Vec3) Vec3 {
 	return v.Sub(normal.Mul(2 * Dot(v, normal)))
 }
+
+func Refract(uv, normal Vec3, etaRatio float64) Vec3 {
+	cosTheta := stdmath.Min(Dot(uv.Neg(), normal), 1.0)
+	rOutPerpendicular := uv.Add(normal.Mul(cosTheta)).Mul(etaRatio)
+	rOutParallel := normal.Mul(-stdmath.Sqrt(stdmath.Abs(1.0 - rOutPerpendicular.LengthSquared())))
+
+	return rOutPerpendicular.Add(rOutParallel)
+}
