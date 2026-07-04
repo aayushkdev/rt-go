@@ -1,4 +1,4 @@
-package objects
+package geometry
 
 import rtmath "github.com/aayushkdev/rt-go/math"
 
@@ -38,4 +38,17 @@ func (w World) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 	}
 
 	return closestRecord, hitAnything
+}
+
+func (w World) BoundingBox() AABB {
+	if len(w.Objects) == 0 {
+		return AABB{}
+	}
+
+	box := w.Objects[0].BoundingBox()
+	for i := 1; i < len(w.Objects); i++ {
+		box = SurroundingBox(box, w.Objects[i].BoundingBox())
+	}
+
+	return box
 }

@@ -2,9 +2,10 @@ package scene
 
 import (
 	"github.com/aayushkdev/rt-go/camera"
+	"github.com/aayushkdev/rt-go/geometry"
+	"github.com/aayushkdev/rt-go/loader"
 	"github.com/aayushkdev/rt-go/materials"
 	rtmath "github.com/aayushkdev/rt-go/math"
-	"github.com/aayushkdev/rt-go/objects"
 )
 
 func DefaultCameraConfig() camera.Config {
@@ -20,16 +21,52 @@ func DefaultCameraConfig() camera.Config {
 	}
 }
 
-func DefaultWorld() objects.World {
+func DefaultWorld() geometry.World {
 	materialGround := materials.NewLambertian(rtmath.NewVec3(0.8, 0.8, 0.0))
-	materialCenter := materials.NewLambertian(rtmath.NewVec3(0.1, 0.2, 0.5))
-	materialLeft := materials.NewMetal(rtmath.NewVec3(0.75, 0.75, 0.75), 0)
-	materialRight := materials.NewDielectric(1.5)
+	materialFigurine := materials.NewMetal(rtmath.NewVec3(0.75, 0.75, 0.75), 0.15)
+	figurine := loadFigurine(materialFigurine)
 
-	return objects.NewWorld(
-		objects.NewSphere(rtmath.NewVec3(0, 0, -2), 0.5, materialLeft),
-		objects.NewSphere(rtmath.NewVec3(-1, 0, -2), 0.5, materialCenter),
-		objects.NewSphere(rtmath.NewVec3(1, 0, -2), 0.5, materialRight),
-		objects.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100, materialGround),
+	world := geometry.NewWorld(
+		figurine,
+		geometry.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100, materialGround),
+	)
+
+	return geometry.NewWorld(geometry.NewBVH(world.Objects))
+}
+
+func loadFigurine(material materials.Material) geometry.Hittable {
+	figurine, err := loader.LoadOBJWithMaterials("models/figurine.obj")
+	if err != nil {
+		return fallbackPyramid(material)
+	}
+
+	figurine.FitHeight(1.5)
+	_, max, ok := figurine.Bounds()
+	if ok {
+		figurine.Translate(rtmath.NewVec3(-max.X/2, 0, -3.1-max.Z/2))
+	}
+	figurine.BuildBVH()
+
+	return figurine
+}
+
+func fallbackPyramid(material materials.Material) geometry.Mesh {
+	return geometry.NewMesh(
+		material,
+		[3]rtmath.Point3{
+			rtmath.NewVec3(-0.35, 0.8, -2),
+			rtmath.NewVec3(0.35, 0.8, -2),
+			rtmath.NewVec3(0, 1.35, -2),
+		},
+		[3]rtmath.Point3{
+			rtmath.NewVec3(0.35, 0.8, -2),
+			rtmath.NewVec3(0, 0.8, -2.55),
+			rtmath.NewVec3(0, 1.35, -2),
+		},
+		[3]rtmath.Point3{
+			rtmath.NewVec3(0, 0.8, -2.55),
+			rtmath.NewVec3(-0.35, 0.8, -2),
+			rtmath.NewVec3(0, 1.35, -2),
+		},
 	)
 }

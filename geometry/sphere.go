@@ -1,4 +1,4 @@
-package objects
+package geometry
 
 import (
 	stdmath "math"
@@ -15,6 +15,11 @@ type Sphere struct {
 
 func NewSphere(center rtmath.Point3, radius float64, material materials.Material) Sphere {
 	return Sphere{Center: center, Radius: stdmath.Max(0, radius), Material: material}
+}
+
+func (s Sphere) BoundingBox() AABB {
+	radius := rtmath.NewVec3(s.Radius, s.Radius, s.Radius)
+	return NewAABB(s.Center.Sub(radius), s.Center.Add(radius))
 }
 
 func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {

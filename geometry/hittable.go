@@ -1,4 +1,4 @@
-package objects
+package geometry
 
 import (
 	"github.com/aayushkdev/rt-go/materials"
@@ -21,4 +21,5 @@ func (h *HitRecord) SetFaceNormal(ray rtmath.Ray, outwardNormal rtmath.Vec3) {
 
 type Hittable interface {
 	Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool)
+	BoundingBox() AABB
 }

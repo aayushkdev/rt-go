@@ -6,11 +6,11 @@ import (
 	stdmath "math"
 
 	"github.com/aayushkdev/rt-go/camera"
+	"github.com/aayushkdev/rt-go/geometry"
 	rtmath "github.com/aayushkdev/rt-go/math"
-	"github.com/aayushkdev/rt-go/objects"
 )
 
-func (r Renderer) RenderRGBA(cam camera.Camera, world objects.Hittable) *stdimage.RGBA {
+func (r Renderer) RenderRGBA(cam camera.Camera, world geometry.Hittable) *stdimage.RGBA {
 	img := stdimage.NewRGBA(stdimage.Rect(0, 0, cam.ImageWidth, cam.ImageHeight))
 
 	for j := 0; j < cam.ImageHeight; j++ {

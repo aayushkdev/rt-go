@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/aayushkdev/rt-go/camera"
+	"github.com/aayushkdev/rt-go/geometry"
 	rtimage "github.com/aayushkdev/rt-go/image"
 	rtmath "github.com/aayushkdev/rt-go/math"
-	"github.com/aayushkdev/rt-go/objects"
 )
 
 type Renderer struct {
@@ -23,7 +23,7 @@ func NewRenderer() Renderer {
 	}
 }
 
-func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath string) error {
+func (r Renderer) Render(cam camera.Camera, world geometry.Hittable, outputPath string) error {
 	file, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("create %s: %w", outputPath, err)
@@ -49,7 +49,7 @@ func (r Renderer) Render(cam camera.Camera, world objects.Hittable, outputPath s
 	return nil
 }
 
-func (r Renderer) rayColor(ray rtmath.Ray, world objects.Hittable, depth int) rtmath.Color {
+func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int) rtmath.Color {
 	if depth <= 0 {
 		return rtmath.NewVec3(0, 0, 0)
 	}
