@@ -43,6 +43,7 @@ Materials and lights:
 - Textured metal materials
 - Dielectric glass materials
 - Tinted glass materials
+- Rough/frosted glass materials
 - Diffuse light materials
 - One-sided emissive lights
 - Weighted sampling targets

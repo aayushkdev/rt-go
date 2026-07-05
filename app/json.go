@@ -44,6 +44,7 @@ type fileMaterial struct {
 	Texture    fileTexture `json:"texture"`
 	Tint       fileTexture `json:"tint"`
 	Fuzz       float64     `json:"fuzz"`
+	Roughness  float64     `json:"roughness"`
 	Refraction float64     `json:"refraction"`
 }
 
@@ -340,6 +341,9 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 		if material.Refraction <= 0 {
 			return nil, "", fmt.Errorf("refraction must be greater than zero")
 		}
+		if material.Roughness < 0 || material.Roughness > 1 {
+			return nil, "", fmt.Errorf("roughness must be between 0 and 1")
+		}
 		tint := materials.Texture(materials.NewSolidColor(rtmath.NewVec3(1, 1, 1)))
 		if textureConfigured(material.Tint) {
 			var err error
@@ -348,7 +352,7 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 				return nil, "", fmt.Errorf("tint: %w", err)
 			}
 		}
-		return materials.NewTintedDielectric(material.Refraction, tint), "glass", nil
+		return materials.NewRoughDielectric(material.Refraction, tint, material.Roughness), "glass", nil
 	case "light":
 		color, err := requiredVec(material.Color, "color")
 		if err != nil {

@@ -10,6 +10,7 @@ type Dielectric struct {
 	BaseMaterial
 	RefractionIndex float64
 	Tint            Texture
+	Roughness       float64
 }
 
 func NewDielectric(refractionIndex float64) Dielectric {
@@ -17,9 +18,14 @@ func NewDielectric(refractionIndex float64) Dielectric {
 }
 
 func NewTintedDielectric(refractionIndex float64, tint Texture) Dielectric {
+	return NewRoughDielectric(refractionIndex, tint, 0)
+}
+
+func NewRoughDielectric(refractionIndex float64, tint Texture, roughness float64) Dielectric {
 	return Dielectric{
 		RefractionIndex: refractionIndex,
 		Tint:            tint,
+		Roughness:       stdmath.Min(stdmath.Max(roughness, 0), 1),
 	}
 }
 
@@ -39,8 +45,21 @@ func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random
 	if cannotRefract || reflectance(cosTheta, refractionRatio) > random.Float64() {
 		direction = rtmath.Reflect(unitDirection, hit.Normal)
 	}
+	if d.Roughness > 0 {
+		direction = roughenDirection(direction, d.Roughness, random)
+	}
 
 	return NewSpecularScatter(attenuation, rtmath.NewRay(hit.Point, direction)), true
+}
+
+func roughenDirection(direction rtmath.Vec3, roughness float64, random *rtmath.Random) rtmath.Vec3 {
+	coneCosine := stdmath.Cos(roughness * rtmath.Pi / 2)
+	z := random.Float64Range(coneCosine, 1)
+	phi := 2 * rtmath.Pi * random.Float64()
+	r := stdmath.Sqrt(1 - z*z)
+	local := rtmath.NewVec3(stdmath.Cos(phi)*r, stdmath.Sin(phi)*r, z)
+
+	return rtmath.NewONBFromW(direction).Local(local).Unit()
 }
 
 func reflectance(cosine, refractionIndex float64) float64 {

@@ -227,6 +227,7 @@ func TestMaterialFromJSONSupportsTintedGlass(t *testing.T) {
 	material, materialType, err := materialFromJSON(fileMaterial{
 		Type:       "glass",
 		Refraction: 1.5,
+		Roughness:  0.25,
 		Tint: fileTexture{
 			Type:  "solid",
 			Color: []float64{0.7, 0.9, 1},
@@ -246,6 +247,20 @@ func TestMaterialFromJSONSupportsTintedGlass(t *testing.T) {
 	tint := glass.Tint.Value(0, 0, rtmath.Point3{})
 	if tint != rtmath.NewVec3(0.7, 0.9, 1) {
 		t.Fatalf("glass tint = %#v", tint)
+	}
+	if glass.Roughness != 0.25 {
+		t.Fatalf("glass roughness = %v, want 0.25", glass.Roughness)
+	}
+}
+
+func TestMaterialFromJSONRejectsInvalidGlassRoughness(t *testing.T) {
+	_, _, err := materialFromJSON(fileMaterial{
+		Type:       "glass",
+		Refraction: 1.5,
+		Roughness:  1.2,
+	})
+	if err == nil {
+		t.Fatal("expected invalid roughness error")
 	}
 }
 

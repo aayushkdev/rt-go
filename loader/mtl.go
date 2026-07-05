@@ -134,14 +134,14 @@ func (m mtlMaterial) store(materialsByName map[string]materials.Material) {
 
 	if m.isGlass() {
 		if texture, ok := m.diffuseTexture(); ok {
-			materialsByName[m.name] = materials.NewTintedDielectric(m.refractionIndex, texture)
+			materialsByName[m.name] = materials.NewRoughDielectric(m.refractionIndex, texture, m.glassRoughness())
 			return
 		}
 		if m.hasDiffuse {
-			materialsByName[m.name] = materials.NewTintedDielectric(m.refractionIndex, materials.NewSolidColor(m.diffuse))
+			materialsByName[m.name] = materials.NewRoughDielectric(m.refractionIndex, materials.NewSolidColor(m.diffuse), m.glassRoughness())
 			return
 		}
-		materialsByName[m.name] = materials.NewDielectric(m.refractionIndex)
+		materialsByName[m.name] = materials.NewRoughDielectric(m.refractionIndex, materials.NewSolidColor(rtmath.NewVec3(1, 1, 1)), m.glassRoughness())
 		return
 	}
 	if m.isMetal() {
@@ -187,6 +187,13 @@ func (m mtlMaterial) isMetal() bool {
 func (m mtlMaterial) metalFuzz() float64 {
 	if !m.hasShininess {
 		return 0.2
+	}
+	return 1 / (1 + m.shininess/10)
+}
+
+func (m mtlMaterial) glassRoughness() float64 {
+	if !m.hasShininess {
+		return 0
 	}
 	return 1 / (1 + m.shininess/10)
 }

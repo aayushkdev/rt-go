@@ -343,6 +343,7 @@ newmtl glass
 Kd 0.9 0.9 1.0
 d 0.4
 Ni 1.45
+Ns 10
 illum 4
 `), 0o600)
 	if err != nil {
@@ -360,6 +361,9 @@ illum 4
 	}
 	if material.RefractionIndex != 1.45 {
 		t.Fatalf("material.RefractionIndex = %v, want 1.45", material.RefractionIndex)
+	}
+	if material.Roughness != 0.5 {
+		t.Fatalf("material.Roughness = %v, want 0.5", material.Roughness)
 	}
 	tint := material.Tint.Value(0, 0, rtmath.Point3{})
 	if tint != rtmath.NewVec3(0.9, 0.9, 1.0) {

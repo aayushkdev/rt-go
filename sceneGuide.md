@@ -199,12 +199,14 @@ Textured metal:
 "material": {
   "type": "glass",
   "refraction": 1.5,
+  "roughness": 0.2,
   "tint": { "type": "solid", "color": [0.9, 0.97, 1.0] }
 }
 ```
 
 `1.5` is a normal glass-like refraction value. `tint` is optional. If it is not
-set, the glass is clear white.
+set, the glass is clear white. `roughness` is optional. `0` is clear glass;
+higher values blur reflection and refraction for a frosted look.
 
 ### 4.4 Light
 
@@ -223,6 +225,7 @@ Field | Used by | Meaning
 `fuzz` | metal | Reflection roughness.
 `refraction` | glass | Refraction index.
 `tint` | glass | Optional color/texture filter for transmitted and reflected glass rays.
+`roughness` | glass | Direction blur for rough/frosted glass. Use `0` to `1`.
 
 ## 5. Common object fields
 
