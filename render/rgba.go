@@ -29,7 +29,8 @@ func (r Renderer) RenderRGBA(cam camera.Camera, world geometry.Hittable) *stdima
 				for i := 0; i < cam.ImageWidth; i++ {
 					pixelColor := rtmath.NewVec3(0, 0, 0)
 					for sample := 0; sample < r.SamplesPerPixel; sample++ {
-						ray := cam.RayForPixelSampleRandom(i, j, sampleOffset(random), sampleOffset(random), random)
+						offsetU, offsetV := stratifiedSampleOffset(sample, r.SamplesPerPixel, random)
+						ray := cam.RayForPixelSampleRandom(i, j, offsetU, offsetV, random)
 						pixelColor = pixelColor.Add(r.rayColor(ray, world, r.MaxDepth, random))
 					}
 					row[i] = rgbaColor(pixelColor, r.SamplesPerPixel)

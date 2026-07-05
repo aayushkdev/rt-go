@@ -171,7 +171,8 @@ func (r Renderer) renderScanline(cam camera.Camera, world geometry.Hittable, j, 
 	for i := 0; i < cam.ImageWidth; i++ {
 		pixelColor := rtmath.NewVec3(0, 0, 0)
 		for sample := 0; sample < r.SamplesPerPixel; sample++ {
-			ray := cam.RayForPixelSampleRandom(i, j, sampleOffset(random), sampleOffset(random), random)
+			offsetU, offsetV := stratifiedSampleOffset(sample, r.SamplesPerPixel, random)
+			ray := cam.RayForPixelSampleRandom(i, j, offsetU, offsetV, random)
 			pixelColor = pixelColor.Add(r.rayColor(ray, world, r.MaxDepth, random))
 		}
 		rByte, gByte, bByte := rtimage.ColorBytes(pixelColor, r.SamplesPerPixel)
@@ -264,4 +265,20 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 
 func sampleOffset(random *rtmath.Random) float64 {
 	return random.Float64() - 0.5
+}
+
+func stratifiedSampleOffset(sample, samplesPerPixel int, random *rtmath.Random) (float64, float64) {
+	if samplesPerPixel <= 1 {
+		return sampleOffset(random), sampleOffset(random)
+	}
+
+	columns := int(stdmath.Ceil(stdmath.Sqrt(float64(samplesPerPixel))))
+	rows := int(stdmath.Ceil(float64(samplesPerPixel) / float64(columns)))
+	x := sample % columns
+	y := sample / columns
+
+	offsetU := (float64(x)+random.Float64())/float64(columns) - 0.5
+	offsetV := (float64(y)+random.Float64())/float64(rows) - 0.5
+
+	return offsetU, offsetV
 }

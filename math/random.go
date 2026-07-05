@@ -1,6 +1,9 @@
 package math
 
-import stdrand "math/rand"
+import (
+	stdmath "math"
+	stdrand "math/rand"
+)
 
 type Random struct {
 	source *stdrand.Rand
@@ -46,6 +49,17 @@ func (r *Random) InUnitDisk() Vec3 {
 			return p
 		}
 	}
+}
+
+func (r *Random) CosineDirection() Vec3 {
+	r1 := r.Float64()
+	r2 := r.Float64()
+	phi := 2 * Pi * r1
+	x := stdmath.Cos(phi) * stdmath.Sqrt(r2)
+	y := stdmath.Sin(phi) * stdmath.Sqrt(r2)
+	z := stdmath.Sqrt(1 - r2)
+
+	return NewVec3(x, y, z)
 }
 
 func RandomFloat64() float64 {
