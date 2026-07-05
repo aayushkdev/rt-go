@@ -125,8 +125,9 @@ Kd 0.1 0.2 0.9
 	if !ok {
 		t.Fatalf("material = %T, want materials.Lambertian", mesh.Triangles[0].Material)
 	}
-	if material.Albedo != rtmath.NewVec3(0.1, 0.2, 0.9) {
-		t.Fatalf("material.Albedo = %#v", material.Albedo)
+	albedo := material.Albedo.Value(0, 0, rtmath.Point3{})
+	if albedo != rtmath.NewVec3(0.1, 0.2, 0.9) {
+		t.Fatalf("material albedo = %#v", albedo)
 	}
 }
 

@@ -1,7 +1,7 @@
-# JSON scene guide
+# Scene guide
 
-Scenes are JSON files. Start from `examples/gallery.json` or
-`examples/cornell.json`, then edit the values.
+Scenes are JSON files. Start from `examples/gallery.json`,
+`examples/cornell.json`, or `examples/textures.json`, then edit the values.
 
 ## 1. File shape
 
@@ -24,8 +24,6 @@ Field | Required | Meaning
 `objects` | yes | List of objects in the scene.
 
 ## 2. Camera
-
-The camera decides where the image is taken from and what it looks at.
 
 ```json
 "camera": {
@@ -51,8 +49,6 @@ Field | Required | Meaning
 
 ## 3. Render settings
 
-Render settings control quality and speed.
-
 ```json
 "render": {
   "samples": 100,
@@ -73,18 +69,18 @@ Field | Required | Meaning
 `flush_every_scanline` | no | How often partial PPM output is written while rendering.
 `background` | yes | Background color `[r, g, b]` when `sky` is false.
 `sky` | no | Use a blue sky gradient background instead of `background`.
-`sampling_target_weight` | no | Chance to sample lights/targets instead of only material scattering. `0.5` is a good default.
+`sampling_target_weight` | no | Chance to sample lights/targets instead of only material scattering.
 
 Normal colors are usually between `0` and `1`. Light colors can be much higher,
 like `[15, 15, 15]`.
 
-## 4. Materials
+## 4. Materials and textures
 
 Objects use a `material` field unless noted otherwise.
 
 ### 4.1 Matte
 
-Diffuse, rough material.
+Matte is diffuse and rough.
 
 ```json
 "material": {
@@ -93,9 +89,23 @@ Diffuse, rough material.
 }
 ```
 
-### 4.2 Metal
+Matte can also use an explicit texture. Right now the implemented texture type
+is `solid`, which behaves like a normal color but uses the texture system.
 
-Reflective material.
+```json
+"material": {
+  "type": "matte",
+  "texture": {
+    "type": "solid",
+    "color": [0.7, 0.7, 0.7]
+  }
+}
+```
+
+The old `color` form and the new `texture` form both work. The texture form is
+the base for checker, image, and noise textures later.
+
+### 4.2 Metal
 
 ```json
 "material": {
@@ -109,8 +119,6 @@ Reflective material.
 
 ### 4.3 Glass
 
-Transparent refractive material.
-
 ```json
 "material": {
   "type": "glass",
@@ -121,8 +129,6 @@ Transparent refractive material.
 `1.5` is a normal glass-like refraction value.
 
 ### 4.4 Light
-
-Emissive material.
 
 ```json
 "material": {
@@ -135,12 +141,11 @@ Field | Used by | Meaning
 --- | --- | ---
 `type` | all | `matte`, `metal`, `glass`, or `light`.
 `color` | matte, metal, light | Base color or emission color.
+`texture` | matte | Texture object. Currently supports `solid`.
 `fuzz` | metal | Reflection roughness.
 `refraction` | glass | Refraction index.
 
 ## 5. Common object fields
-
-These fields can be used on most objects.
 
 Field | Meaning
 --- | ---
@@ -162,8 +167,6 @@ Glass and light objects are sampled by default. Use `sample: true` for another
 important object that should be sampled directly.
 
 ## 6. Object types
-
-Each object in `objects` needs a `type`.
 
 ### 6.1 Sphere
 
@@ -405,8 +408,6 @@ Mapping rules:
 
 ## 8. Quick object template
 
-Use this when adding a new object:
-
 ```json
 {
   "type": "sphere",
@@ -417,6 +418,9 @@ Use this when adding a new object:
   "rotate_z": 0,
   "move": [0, 0, 0],
   "sample": false,
-  "material": { "type": "matte", "color": [0.7, 0.7, 0.7] }
+  "material": {
+    "type": "matte",
+    "texture": { "type": "solid", "color": [0.7, 0.7, 0.7] }
+  }
 }
 ```

@@ -35,6 +35,7 @@ Scene objects:
 Materials and lights:
 
 - Lambertian matte materials
+- Texture support: solid
 - Metal materials
 - Dielectric glass materials
 - Diffuse light materials
@@ -70,7 +71,6 @@ Render a JSON scene:
 
 ```sh
 go run . -r examples/gallery.json
-go run . -r examples/cornell.json
 ```
 
 This writes:
@@ -81,6 +81,8 @@ image.ppm
 
 Edit a JSON scene file to change the camera, render quality, objects,
 materials, and lights.
+
+Other example scenes are in `examples/`.
 
 See [sceneGuide.md](sceneGuide.md) for a guide on how to design a scene.
 

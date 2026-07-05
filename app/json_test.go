@@ -1,6 +1,11 @@
 package app
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/aayushkdev/rt-go/materials"
+	rtmath "github.com/aayushkdev/rt-go/math"
+)
 
 func TestParseJSONConfigDoesNotUseDefaultScene(t *testing.T) {
 	config, err := ParseJSONConfig([]byte(`{
@@ -99,5 +104,51 @@ func TestJSONSamplingRules(t *testing.T) {
 	}
 	if !objects[2].Light || !objects[2].Sample {
 		t.Fatalf("light object should always be light and sampled")
+	}
+}
+
+func TestParseJSONConfigSupportsSolidTexture(t *testing.T) {
+	config, err := ParseJSONConfig([]byte(`{
+		"output": "texture.ppm",
+		"camera": {
+			"size": 200,
+			"aspect": 1,
+			"fov": 40,
+			"from": [0, 1, 3],
+			"look_at": [0, 1, -1],
+			"focus": 4
+		},
+		"render": {
+			"samples": 10,
+			"max_depth": 5,
+			"workers": 0,
+			"flush_every_scanline": 10,
+			"background": [0, 0, 0],
+			"sky": false,
+			"sampling_target_weight": 0.5
+		},
+		"objects": [
+			{
+				"type": "sphere",
+				"center": [0, 0.5, -1],
+				"radius": 0.5,
+				"material": {
+					"type": "matte",
+					"texture": { "type": "solid", "color": [0.2, 0.4, 0.8] }
+				}
+			}
+		]
+	}`))
+	if err != nil {
+		t.Fatalf("parse config: %v", err)
+	}
+
+	material, ok := config.Scene.Objects[0].Material.(materials.Lambertian)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Lambertian", config.Scene.Objects[0].Material)
+	}
+	color := material.Albedo.Value(0, 0, rtmath.Point3{})
+	if color != rtmath.NewVec3(0.2, 0.4, 0.8) {
+		t.Fatalf("texture color = %#v", color)
 	}
 }

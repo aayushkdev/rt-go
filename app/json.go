@@ -39,10 +39,16 @@ type fileRender struct {
 }
 
 type fileMaterial struct {
-	Type       string    `json:"type"`
-	Color      []float64 `json:"color"`
-	Fuzz       float64   `json:"fuzz"`
-	Refraction float64   `json:"refraction"`
+	Type       string      `json:"type"`
+	Color      []float64   `json:"color"`
+	Texture    fileTexture `json:"texture"`
+	Fuzz       float64     `json:"fuzz"`
+	Refraction float64     `json:"refraction"`
+}
+
+type fileTexture struct {
+	Type  string    `json:"type"`
+	Color []float64 `json:"color"`
 }
 
 type fileObject struct {
@@ -311,11 +317,11 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 func materialFromJSON(material fileMaterial) (materials.Material, string, error) {
 	switch material.Type {
 	case "matte":
-		color, err := requiredVec(material.Color, "color")
+		texture, err := textureFromJSON(material.Texture, material.Color)
 		if err != nil {
 			return nil, "", err
 		}
-		return materials.NewLambertian(color), "matte", nil
+		return materials.NewTexturedLambertian(texture), "matte", nil
 	case "metal":
 		color, err := requiredVec(material.Color, "color")
 		if err != nil {
@@ -335,6 +341,27 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 		return materials.NewDiffuseLight(color), "light", nil
 	default:
 		return nil, "", fmt.Errorf("unknown material type %q", material.Type)
+	}
+}
+
+func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Texture, error) {
+	if texture.Type == "" {
+		color, err := requiredVec(fallbackColor, "color")
+		if err != nil {
+			return nil, err
+		}
+		return materials.NewSolidColor(color), nil
+	}
+
+	switch texture.Type {
+	case "solid":
+		color, err := requiredVec(texture.Color, "texture.color")
+		if err != nil {
+			return nil, err
+		}
+		return materials.NewSolidColor(color), nil
+	default:
+		return nil, fmt.Errorf("unknown texture type %q", texture.Type)
 	}
 }
 
