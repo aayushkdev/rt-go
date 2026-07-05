@@ -23,3 +23,8 @@ type Hittable interface {
 	Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool)
 	BoundingBox() AABB
 }
+
+type Sampler interface {
+	PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64
+	Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3
+}

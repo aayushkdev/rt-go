@@ -54,3 +54,31 @@ func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 
 	return record, true
 }
+
+func (s Sphere) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	_, hit := s.Hit(rtmath.NewRay(origin, direction), rtmath.NewInterval(0.001, stdmath.Inf(1)))
+	if !hit {
+		return 0
+	}
+
+	distanceSquared := s.Center.Sub(origin).LengthSquared()
+	if distanceSquared <= s.Radius*s.Radius {
+		return 1 / (4 * rtmath.Pi)
+	}
+
+	cosThetaMax := stdmath.Sqrt(1 - s.Radius*s.Radius/distanceSquared)
+	solidAngle := 2 * rtmath.Pi * (1 - cosThetaMax)
+
+	return 1 / solidAngle
+}
+
+func (s Sphere) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	direction := s.Center.Sub(origin)
+	distanceSquared := direction.LengthSquared()
+	if distanceSquared <= s.Radius*s.Radius {
+		return random.UnitVector()
+	}
+
+	uvw := rtmath.NewONBFromW(direction)
+	return uvw.Local(random.ToSphere(s.Radius, distanceSquared))
+}

@@ -30,3 +30,21 @@ func (t Translate) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 func (t Translate) BoundingBox() AABB {
 	return t.Box
 }
+
+func (t Translate) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	sampler, ok := t.Object.(Sampler)
+	if !ok {
+		return 0
+	}
+
+	return sampler.PDFValue(origin.Sub(t.Offset), direction)
+}
+
+func (t Translate) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	sampler, ok := t.Object.(Sampler)
+	if !ok {
+		return rtmath.NewVec3(1, 0, 0)
+	}
+
+	return sampler.Random(origin.Sub(t.Offset), random)
+}

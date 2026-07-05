@@ -52,3 +52,44 @@ func (w World) BoundingBox() AABB {
 
 	return box
 }
+
+func (w World) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	samplers := w.samplers()
+	if len(samplers) == 0 {
+		return 0
+	}
+
+	weight := 1.0 / float64(len(samplers))
+	sum := 0.0
+	for _, sampler := range samplers {
+		sum += weight * sampler.PDFValue(origin, direction)
+	}
+
+	return sum
+}
+
+func (w World) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	samplers := w.samplers()
+	if len(samplers) == 0 {
+		return rtmath.NewVec3(1, 0, 0)
+	}
+
+	index := int(random.Float64() * float64(len(samplers)))
+	if index >= len(samplers) {
+		index = len(samplers) - 1
+	}
+
+	return samplers[index].Random(origin, random)
+}
+
+func (w World) samplers() []Sampler {
+	samplers := []Sampler{}
+	for _, object := range w.Objects {
+		sampler, ok := object.(Sampler)
+		if ok {
+			samplers = append(samplers, sampler)
+		}
+	}
+
+	return samplers
+}

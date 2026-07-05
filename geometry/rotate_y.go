@@ -46,6 +46,25 @@ func (r RotateY) BoundingBox() AABB {
 	return r.Box
 }
 
+func (r RotateY) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	sampler, ok := r.Object.(Sampler)
+	if !ok {
+		return 0
+	}
+
+	return sampler.PDFValue(r.rotateIntoObject(origin), r.rotateIntoObject(direction))
+}
+
+func (r RotateY) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	sampler, ok := r.Object.(Sampler)
+	if !ok {
+		return rtmath.NewVec3(1, 0, 0)
+	}
+
+	direction := sampler.Random(r.rotateIntoObject(origin), random)
+	return r.rotateFromObject(direction)
+}
+
 func (r RotateY) rotateIntoObject(v rtmath.Vec3) rtmath.Vec3 {
 	return rtmath.NewVec3(
 		r.Cos*v.X-r.Sin*v.Z,

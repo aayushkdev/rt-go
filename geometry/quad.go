@@ -70,3 +70,27 @@ func (q Quad) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 func (q Quad) BoundingBox() AABB {
 	return q.Box
 }
+
+func (q Quad) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	record, hit := q.Hit(rtmath.NewRay(origin, direction), rtmath.NewInterval(0.001, stdmath.Inf(1)))
+	if !hit {
+		return 0
+	}
+
+	area := rtmath.Cross(q.U, q.V).Length()
+	distanceSquared := record.T * record.T * direction.LengthSquared()
+	cosine := stdmath.Abs(rtmath.Dot(direction, q.Normal) / direction.Length())
+	if cosine == 0 {
+		return 0
+	}
+
+	return distanceSquared / (cosine * area)
+}
+
+func (q Quad) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	point := q.Q.
+		Add(q.U.Mul(random.Float64())).
+		Add(q.V.Mul(random.Float64()))
+
+	return point.Sub(origin)
+}
