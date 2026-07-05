@@ -36,6 +36,14 @@ func main() {
 	}
 
 	config := DefaultConfig()
+	if len(os.Args) > 1 {
+		loaded, err := LoadJSONConfig(os.Args[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "load scene failed: %v\n", err)
+			os.Exit(1)
+		}
+		config = loaded
+	}
 	world := scene.BuildWorld(config.Scene)
 	samplingTargets := scene.BuildSampleTargets(config.Scene)
 	cam := camera.New(config.Camera)

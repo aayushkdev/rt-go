@@ -1,0 +1,103 @@
+package main
+
+import "testing"
+
+func TestParseJSONConfigDoesNotUseDefaultScene(t *testing.T) {
+	config, err := ParseJSONConfig([]byte(`{
+		"output": "custom.ppm",
+		"camera": {
+			"size": 200,
+			"aspect": 1,
+			"fov": 40,
+			"from": [0, 1, 3],
+			"look_at": [0, 1, -1],
+			"focus": 4
+		},
+		"render": {
+			"samples": 10,
+			"max_depth": 5,
+			"workers": 0,
+			"flush_every_scanline": 10,
+			"background": [0, 0, 0],
+			"sky": false,
+			"sampling_target_weight": 0.5
+		},
+		"objects": [
+			{
+				"type": "sphere",
+				"center": [0, 0.5, -1],
+				"radius": 0.5,
+				"material": { "type": "matte", "color": [0.7, 0.7, 0.7] }
+			}
+		]
+	}`))
+	if err != nil {
+		t.Fatalf("parse config: %v", err)
+	}
+
+	if config.OutputPath != "custom.ppm" {
+		t.Fatalf("output = %q, want custom.ppm", config.OutputPath)
+	}
+	if len(config.Scene.Objects) != 1 {
+		t.Fatalf("object count = %d, want 1", len(config.Scene.Objects))
+	}
+}
+
+func TestJSONSamplingRules(t *testing.T) {
+	config, err := ParseJSONConfig([]byte(`{
+		"output": "sample.ppm",
+		"camera": {
+			"size": 200,
+			"aspect": 1,
+			"fov": 40,
+			"from": [0, 1, 3],
+			"look_at": [0, 1, -1],
+			"focus": 4
+		},
+		"render": {
+			"samples": 10,
+			"max_depth": 5,
+			"workers": 0,
+			"flush_every_scanline": 10,
+			"background": [0, 0, 0],
+			"sky": false,
+			"sampling_target_weight": 0.5
+		},
+		"objects": [
+			{
+				"type": "sphere",
+				"center": [0, 0.5, -1],
+				"radius": 0.5,
+				"material": { "type": "glass", "refraction": 1.5 }
+			},
+			{
+				"type": "sphere",
+				"center": [1, 0.5, -1],
+				"radius": 0.5,
+				"sample": false,
+				"material": { "type": "glass", "refraction": 1.5 }
+			},
+			{
+				"type": "sphere",
+				"center": [-1, 0.5, -1],
+				"radius": 0.5,
+				"sample": false,
+				"material": { "type": "light", "color": [4, 4, 4] }
+			}
+		]
+	}`))
+	if err != nil {
+		t.Fatalf("parse config: %v", err)
+	}
+
+	objects := config.Scene.Objects
+	if !objects[0].Sample {
+		t.Fatalf("glass object should auto-sample")
+	}
+	if objects[1].Sample {
+		t.Fatalf("sample:false should disable glass sampling")
+	}
+	if !objects[2].Light || !objects[2].Sample {
+		t.Fatalf("light object should always be light and sampled")
+	}
+}

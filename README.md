@@ -5,7 +5,7 @@ triangles, OBJ meshes, matte/metal/glass materials, and emissive lights.
 
 ![Cornell render](outputs/connel.png)
 
-![Demo render](outputs/demo.png)
+![Gallery render](outputs/gallery.png)
 
 
 ## Usage
@@ -24,14 +24,21 @@ Then run:
 go run .
 ```
 
+Or render from a JSON scene file:
+
+```sh
+go run . examples/gallery.json
+go run . examples/cornell.json
+```
+
 This writes:
 
 ```text
 image.ppm
 ```
 
-Edit `config.go` to change the camera, render quality, objects, materials, and
-lights.
+Edit `config.go` or a JSON scene file to change the camera, render quality,
+objects, materials, and lights.
 
 For the browser viewer:
 

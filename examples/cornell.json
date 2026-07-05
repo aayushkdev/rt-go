@@ -1,0 +1,98 @@
+{
+  "output": "image.ppm",
+  "camera": {
+    "size": 600,
+    "aspect": 1,
+    "fov": 40,
+    "from": [0, 1.5, 4.0],
+    "look_at": [0, 1.5, -2.0],
+    "focus": 6
+  },
+  "render": {
+    "samples": 1000,
+    "max_depth": 20,
+    "workers": 0,
+    "flush_every_scanline": 10,
+    "background": [0, 0, 0],
+    "sky": false,
+    "sampling_target_weight": 0.5
+  },
+  "objects": [
+    {
+      "type": "floor",
+      "x1": -2,
+      "z1": -4,
+      "x2": 2,
+      "z2": 0,
+      "y": 0,
+      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+    },
+    {
+      "type": "floor",
+      "x1": -2,
+      "z1": -4,
+      "x2": 2,
+      "z2": 0,
+      "y": 3,
+      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+    },
+    {
+      "type": "wall_z",
+      "z": -4,
+      "x1": -2,
+      "x2": 2,
+      "y1": 0,
+      "y2": 3,
+      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+    },
+    {
+      "type": "wall_x",
+      "x": -2,
+      "y1": 0,
+      "y2": 3,
+      "z1": 0,
+      "z2": -4,
+      "material": { "type": "matte", "color": [0.12, 0.45, 0.15] }
+    },
+    {
+      "type": "wall_x",
+      "x": 2,
+      "y1": 0,
+      "y2": 3,
+      "z1": -4,
+      "z2": 0,
+      "material": { "type": "matte", "color": [0.65, 0.05, 0.05] }
+    },
+    {
+      "type": "ceiling_light",
+      "x1": -0.55,
+      "z1": -2.45,
+      "x2": 0.55,
+      "z2": -1.55,
+      "y": 2.98,
+      "color": [15, 15, 15]
+    },
+    {
+      "type": "box",
+      "min": [-0.45, 0, -0.45],
+      "max": [0.45, 1.75, 0.45],
+      "rotate_y": 15,
+      "move": [-0.65, 0, -2.45],
+      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+    },
+    {
+      "type": "box",
+      "min": [-0.45, 0, -0.45],
+      "max": [0.45, 0.9, 0.45],
+      "rotate_y": -18,
+      "move": [0.75, 0, -1.75],
+      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+    },
+    {
+      "type": "sphere",
+      "center": [0.75, 1.25, -1.75],
+      "radius": 0.35,
+      "material": { "type": "glass", "refraction": 1.5 }
+    }
+  ]
+}
