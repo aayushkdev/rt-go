@@ -58,7 +58,7 @@ func DefaultConfig() AppConfig {
 			FlushEveryScanline:   10,
 			Background:           Point(0, 0, 0),
 			SkyBackground:        false,
-			SamplingTargetWeight: 0.8,
+			SamplingTargetWeight: 0.999999,
 		},
 
 		// Object formats:
