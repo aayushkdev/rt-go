@@ -32,6 +32,11 @@ func (c CameraBuilder) Size(width int) CameraBuilder {
 	return c
 }
 
+func (c CameraBuilder) Aspect(ratio float64) CameraBuilder {
+	c.config.AspectRatio = ratio
+	return c
+}
+
 func (c CameraBuilder) FOV(vfov float64) CameraBuilder {
 	c.config.VFov = vfov
 	return c
@@ -101,6 +106,11 @@ func RotateY(object scene.Object, angle float64) scene.Object {
 	return scene.RotateY(object, angle)
 }
 
+// AsLight marks an object as a light source for direct light sampling.
+func AsLight(object scene.Object) scene.Object {
+	return scene.AsLight(object)
+}
+
 // Floor creates a horizontal X/Z quad at height y.
 func Floor(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
 	return Quad(
@@ -133,7 +143,7 @@ func WallZ(z, x1, x2, y1, y2 float64, material materials.Material) scene.Object 
 
 // CeilingLight creates a horizontal emissive quad near the ceiling.
 func CeilingLight(x1, z1, x2, z2, y float64, r, g, b float64) scene.Object {
-	return Floor(x1, z1, x2, z2, y, Light(r, g, b))
+	return AsLight(Floor(x1, z1, x2, z2, y, Light(r, g, b)))
 }
 
 // Point is a short helper for 3D positions.

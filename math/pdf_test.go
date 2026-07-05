@@ -27,3 +27,27 @@ func TestCosinePDFGenerateUsesPositiveHemisphere(t *testing.T) {
 		}
 	}
 }
+
+type constantPDF struct {
+	value     float64
+	direction Vec3
+}
+
+func (p constantPDF) Value(direction Vec3) float64 {
+	return p.value
+}
+
+func (p constantPDF) Generate(random *Random) Vec3 {
+	return p.direction
+}
+
+func TestMixturePDFValueAveragesInputs(t *testing.T) {
+	pdf := NewMixturePDF(
+		constantPDF{value: 2},
+		constantPDF{value: 6},
+	)
+
+	if got := pdf.Value(NewVec3(1, 0, 0)); got != 4 {
+		t.Fatalf("mixture pdf = %v, want 4", got)
+	}
+}

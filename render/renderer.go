@@ -21,6 +21,7 @@ type Renderer struct {
 	FlushEveryScanline int
 	Background         rtmath.Color
 	SkyBackground      bool
+	Lights             geometry.Sampler
 }
 
 func NewRenderer() Renderer {
@@ -252,8 +253,13 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 			return emitted.Add(scatter.Attenuation.MulVec(r.rayColor(scatter.Scattered, world, depth-1, random)))
 		}
 
-		scattered := rtmath.NewRay(record.Point, scatter.PDF.Generate(random))
-		pdfValue := scatter.PDF.Value(scattered.Direction)
+		pdf := scatter.PDF
+		if r.Lights != nil {
+			pdf = rtmath.NewMixturePDF(geometry.NewHittablePDF(r.Lights, record.Point), scatter.PDF)
+		}
+
+		scattered := rtmath.NewRay(record.Point, pdf.Generate(random))
+		pdfValue := pdf.Value(scattered.Direction)
 		if pdfValue <= 0 {
 			return emitted
 		}

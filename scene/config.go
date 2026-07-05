@@ -14,6 +14,7 @@ type Object struct {
 	Material materials.Material
 	Offset   rtmath.Vec3
 	RotateY  float64
+	Light    bool
 
 	Path     string
 	Height   float64
@@ -67,6 +68,11 @@ func Translate(object Object, x, y, z float64) Object {
 
 func RotateY(object Object, angle float64) Object {
 	object.RotateY += angle
+	return object
+}
+
+func AsLight(object Object) Object {
+	object.Light = true
 	return object
 }
 

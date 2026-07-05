@@ -37,6 +37,7 @@ func main() {
 
 	config := DefaultConfig()
 	world := scene.BuildWorld(config.Scene)
+	lights := scene.BuildLights(config.Scene)
 	cam := camera.New(config.Camera)
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
@@ -45,6 +46,9 @@ func main() {
 	renderer.FlushEveryScanline = config.Render.FlushEveryScanline
 	renderer.Background = config.Render.Background
 	renderer.SkyBackground = config.Render.SkyBackground
+	if len(lights.Objects) > 0 {
+		renderer.Lights = lights
+	}
 	if err := renderer.Render(cam, world, config.OutputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
 		os.Exit(1)
@@ -54,11 +58,15 @@ func main() {
 func runViewer() {
 	config := DefaultConfig()
 	world := scene.BuildWorld(config.Scene)
+	lights := scene.BuildLights(config.Scene)
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = 1
 	renderer.MaxDepth = 6
 	renderer.Background = config.Render.Background
 	renderer.SkyBackground = config.Render.SkyBackground
+	if len(lights.Objects) > 0 {
+		renderer.Lights = lights
+	}
 
 	http.HandleFunc("/", serveViewer)
 	http.HandleFunc("/render", func(w http.ResponseWriter, r *http.Request) {

@@ -16,6 +16,17 @@ func BuildWorld(config Config) geometry.World {
 	return geometry.NewWorld(geometry.NewBVH(world.Objects))
 }
 
+func BuildLights(config Config) geometry.World {
+	lights := geometry.NewWorld()
+	for _, object := range config.Objects {
+		if object.Light {
+			lights.Add(buildObject(object))
+		}
+	}
+
+	return lights
+}
+
 func buildObject(object Object) geometry.Hittable {
 	var hittable geometry.Hittable
 

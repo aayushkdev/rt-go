@@ -25,3 +25,24 @@ func (p CosinePDF) Value(direction Vec3) float64 {
 func (p CosinePDF) Generate(random *Random) Vec3 {
 	return p.UVW.Local(random.CosineDirection())
 }
+
+type MixturePDF struct {
+	A PDF
+	B PDF
+}
+
+func NewMixturePDF(a, b PDF) MixturePDF {
+	return MixturePDF{A: a, B: b}
+}
+
+func (p MixturePDF) Value(direction Vec3) float64 {
+	return 0.5*p.A.Value(direction) + 0.5*p.B.Value(direction)
+}
+
+func (p MixturePDF) Generate(random *Random) Vec3 {
+	if random.Float64() < 0.5 {
+		return p.A.Generate(random)
+	}
+
+	return p.B.Generate(random)
+}
