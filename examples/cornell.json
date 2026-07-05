@@ -9,7 +9,7 @@
     "focus": 6
   },
   "render": {
-    "samples": 1000,
+    "samples": 100,
     "max_depth": 20,
     "workers": 0,
     "flush_every_scanline": 10,

@@ -18,17 +18,11 @@ models/figurine.obj
 
 If the model has a material file, place it in the same folder and make sure the OBJ points to it with `mtllib`.
 
-Then run:
+Render a JSON scene:
 
 ```sh
-go run .
-```
-
-Or render from a JSON scene file:
-
-```sh
-go run . examples/gallery.json
-go run . examples/cornell.json
+go run . -r examples/gallery.json
+go run . -r examples/cornell.json
 ```
 
 This writes:
@@ -37,13 +31,13 @@ This writes:
 image.ppm
 ```
 
-Edit `config.go` or a JSON scene file to change the camera, render quality,
-objects, materials, and lights.
+Edit a JSON scene file to change the camera, render quality, objects,
+materials, and lights.
 
 For the browser viewer:
 
 ```sh
-go run . viewer
+go run . -v examples/gallery.json
 ```
 
 Then open:
@@ -75,4 +69,4 @@ http://localhost:8080
 
 Large OBJ files can take time to load because the renderer parses the mesh and builds a BVH before rendering.
 
-The default scene is defined in Go code for now.
+Scenes are defined with JSON files in `examples/`.

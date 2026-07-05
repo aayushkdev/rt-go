@@ -169,7 +169,7 @@
       }
 
       async function render() {
-        if (rendering || !dirty) retSampleurn;
+        if (rendering || !dirty) return;
         rendering = true;
         lastRenderRequest = performance.now();
         dirty = false;

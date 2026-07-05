@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"encoding/json"
@@ -80,47 +80,47 @@ type fileObject struct {
 	Z2 float64 `json:"z2"`
 }
 
-func LoadJSONConfig(path string) (AppConfig, error) {
+func LoadJSONConfig(path string) (Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return AppConfig{}, fmt.Errorf("read scene file: %w", err)
+		return Config{}, fmt.Errorf("read scene file: %w", err)
 	}
 
 	return ParseJSONConfig(data)
 }
 
-func ParseJSONConfig(data []byte) (AppConfig, error) {
+func ParseJSONConfig(data []byte) (Config, error) {
 	var file fileConfig
 	if err := json.Unmarshal(data, &file); err != nil {
-		return AppConfig{}, fmt.Errorf("parse scene json: %w", err)
+		return Config{}, fmt.Errorf("parse scene json: %w", err)
 	}
 	if file.Output == "" {
-		return AppConfig{}, fmt.Errorf("output is required")
+		return Config{}, fmt.Errorf("output is required")
 	}
 	if len(file.Objects) == 0 {
-		return AppConfig{}, fmt.Errorf("objects must contain at least one object")
+		return Config{}, fmt.Errorf("objects must contain at least one object")
 	}
 
 	cameraConfig, err := cameraFromJSON(file.Camera)
 	if err != nil {
-		return AppConfig{}, fmt.Errorf("camera: %w", err)
+		return Config{}, fmt.Errorf("camera: %w", err)
 	}
 
 	renderConfig, err := renderFromJSON(file.Render)
 	if err != nil {
-		return AppConfig{}, fmt.Errorf("render: %w", err)
+		return Config{}, fmt.Errorf("render: %w", err)
 	}
 
 	objects := make([]scene.Object, 0, len(file.Objects))
 	for index, object := range file.Objects {
 		built, err := objectFromJSON(object)
 		if err != nil {
-			return AppConfig{}, fmt.Errorf("object %d: %w", index, err)
+			return Config{}, fmt.Errorf("object %d: %w", index, err)
 		}
 		objects = append(objects, built)
 	}
 
-	return AppConfig{
+	return Config{
 		OutputPath: file.Output,
 		Camera:     cameraConfig,
 		Render:     renderConfig,
@@ -150,15 +150,16 @@ func cameraFromJSON(cameraFile fileCamera) (camera.Config, error) {
 		return camera.Config{}, fmt.Errorf("focus must be greater than zero")
 	}
 
-	return Camera().
-		Size(cameraFile.Size).
-		Aspect(cameraFile.Aspect).
-		FOV(cameraFile.FOV).
-		From(from.X, from.Y, from.Z).
-		LookAt(lookAt.X, lookAt.Y, lookAt.Z).
-		Focus(cameraFile.Focus).
-		Defocus(cameraFile.Defocus).
-		Config(), nil
+	return camera.Config{
+		ImageWidth:   cameraFile.Size,
+		AspectRatio:  cameraFile.Aspect,
+		VFov:         cameraFile.FOV,
+		LookFrom:     from,
+		LookAt:       lookAt,
+		VUp:          rtmath.NewVec3(0, 1, 0),
+		DefocusAngle: cameraFile.Defocus,
+		FocusDist:    cameraFile.Focus,
+	}, nil
 }
 
 func renderFromJSON(render fileRender) (RenderConfig, error) {
@@ -208,7 +209,7 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		if object.Radius <= 0 {
 			return built, fmt.Errorf("radius must be greater than zero")
 		}
-		built = Sphere(center.X, center.Y, center.Z, object.Radius, material)
+		built = scene.Sphere(center.X, center.Y, center.Z, object.Radius, material)
 	case "box":
 		min, err := requiredVec(object.Min, "min")
 		if err != nil {
@@ -218,7 +219,7 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		if err != nil {
 			return built, err
 		}
-		built = Box(min, max, material)
+		built = scene.Box(min, max, material)
 	case "triangle":
 		a, err := requiredVec(object.A, "a")
 		if err != nil {
@@ -232,7 +233,7 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		if err != nil {
 			return built, err
 		}
-		built = Triangle(a, b, c, material)
+		built = scene.Triangle(a, b, c, material)
 	case "quad":
 		q, err := requiredVec(object.Q, "q")
 		if err != nil {
@@ -246,25 +247,25 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		if err != nil {
 			return built, err
 		}
-		built = Quad(q, u, v, material)
+		built = scene.Quad(q, u, v, material)
 	case "floor":
-		built = Floor(object.X1, object.Z1, object.X2, object.Z2, object.Y, material)
+		built = floorObject(object.X1, object.Z1, object.X2, object.Z2, object.Y, material)
 	case "wall_x":
-		built = WallX(object.X, object.Y1, object.Y2, object.Z1, object.Z2, material)
+		built = wallXObject(object.X, object.Y1, object.Y2, object.Z1, object.Z2, material)
 	case "wall_z":
-		built = WallZ(object.Z, object.X1, object.X2, object.Y1, object.Y2, material)
+		built = wallZObject(object.Z, object.X1, object.X2, object.Y1, object.Y2, material)
 	case "ceiling_light":
 		color, err := requiredVec(object.Color, "color")
 		if err != nil {
 			return built, err
 		}
-		built = CeilingLight(object.X1, object.Z1, object.X2, object.Z2, object.Y, color.X, color.Y, color.Z)
+		built = ceilingLightObject(object.X1, object.Z1, object.X2, object.Z2, object.Y, color)
 		materialType = "light"
 	case "model":
 		if object.Path == "" {
 			return built, fmt.Errorf("path is required")
 		}
-		built = Model(object.Path)
+		built = scene.Model(object.Path)
 		if object.Height > 0 {
 			built = built.WithHeight(object.Height)
 		}
@@ -280,14 +281,14 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 	}
 
 	if object.RotateY != 0 {
-		built = RotateY(built, object.RotateY)
+		built = scene.RotateY(built, object.RotateY)
 	}
 	if len(object.Move) > 0 {
 		move, err := requiredVec(object.Move, "move")
 		if err != nil {
 			return built, err
 		}
-		built = Translate(built, move.X, move.Y, move.Z)
+		built = scene.Translate(built, move.X, move.Y, move.Z)
 	}
 
 	shouldSample := materialType == "glass" || materialType == "light" || object.Light
@@ -295,10 +296,10 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		shouldSample = *object.Sample
 	}
 	if object.Light || materialType == "light" {
-		return AsLight(built), nil
+		return scene.AsLight(built), nil
 	}
 	if shouldSample {
-		return AsSampleTarget(built), nil
+		return scene.AsSampleTarget(built), nil
 	}
 
 	return built, nil
@@ -311,27 +312,58 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 		if err != nil {
 			return nil, "", err
 		}
-		return Matte(color.X, color.Y, color.Z), "matte", nil
+		return materials.NewLambertian(color), "matte", nil
 	case "metal":
 		color, err := requiredVec(material.Color, "color")
 		if err != nil {
 			return nil, "", err
 		}
-		return Metal(color.X, color.Y, color.Z, material.Fuzz), "metal", nil
+		return materials.NewMetal(color, material.Fuzz), "metal", nil
 	case "glass":
 		if material.Refraction <= 0 {
 			return nil, "", fmt.Errorf("refraction must be greater than zero")
 		}
-		return Glass(material.Refraction), "glass", nil
+		return materials.NewDielectric(material.Refraction), "glass", nil
 	case "light":
 		color, err := requiredVec(material.Color, "color")
 		if err != nil {
 			return nil, "", err
 		}
-		return Light(color.X, color.Y, color.Z), "light", nil
+		return materials.NewDiffuseLight(color), "light", nil
 	default:
 		return nil, "", fmt.Errorf("unknown material type %q", material.Type)
 	}
+}
+
+func floorObject(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
+	return scene.Quad(
+		rtmath.NewVec3(x1, y, z1),
+		rtmath.NewVec3(x2-x1, 0, 0),
+		rtmath.NewVec3(0, 0, z2-z1),
+		material,
+	)
+}
+
+func wallXObject(x, y1, y2, z1, z2 float64, material materials.Material) scene.Object {
+	return scene.Quad(
+		rtmath.NewVec3(x, y1, z1),
+		rtmath.NewVec3(0, 0, z2-z1),
+		rtmath.NewVec3(0, y2-y1, 0),
+		material,
+	)
+}
+
+func wallZObject(z, x1, x2, y1, y2 float64, material materials.Material) scene.Object {
+	return scene.Quad(
+		rtmath.NewVec3(x1, y1, z),
+		rtmath.NewVec3(x2-x1, 0, 0),
+		rtmath.NewVec3(0, y2-y1, 0),
+		material,
+	)
+}
+
+func ceilingLightObject(x1, z1, x2, z2, y float64, color rtmath.Color) scene.Object {
+	return scene.AsLight(floorObject(x1, z1, x2, z2, y, materials.NewDiffuseLight(color)))
 }
 
 func requiredVec(values []float64, name string) (rtmath.Vec3, error) {

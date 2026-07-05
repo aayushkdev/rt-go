@@ -1,166 +1,71 @@
 package main
 
 import (
-	_ "embed"
+	"flag"
 	"fmt"
-	"image/png"
-	"log"
-	stdmath "math"
-	"net/http"
 	"os"
-	"strconv"
 
-	"github.com/aayushkdev/rt-go/camera"
-	rtmath "github.com/aayushkdev/rt-go/math"
-	"github.com/aayushkdev/rt-go/render"
-	"github.com/aayushkdev/rt-go/scene"
-)
-
-//go:embed viewer.html
-var viewerHTML string
-
-const (
-	spawnX     = 0.0
-	spawnY     = 1.0
-	spawnZ     = 2.0
-	spawnYaw   = -stdmath.Pi / 2
-	spawnPitch = -0.25
-	spawnFocus = 4.0
-	spawnDOF   = false
+	"github.com/aayushkdev/rt-go/app"
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "viewer" {
-		runViewer()
+	renderPath := flag.String("r", "", "render the scene JSON file")
+	renderPathLong := flag.String("render", "", "render the scene JSON file")
+	viewerPath := flag.String("v", "", "start the viewer with the scene JSON file")
+	viewerPathLong := flag.String("viewer", "", "start the viewer with the scene JSON file")
+	flag.Usage = printUsage
+	flag.Parse()
+
+	renderScenePath := firstNonEmpty(*renderPath, *renderPathLong)
+	viewerScenePath := firstNonEmpty(*viewerPath, *viewerPathLong)
+	if renderScenePath == "" && viewerScenePath == "" {
+		printUsage()
+		os.Exit(1)
+	}
+	if renderScenePath != "" && viewerScenePath != "" {
+		fmt.Fprintln(os.Stderr, "choose either render or viewer, not both")
+		printUsage()
+		os.Exit(1)
+	}
+	if flag.NArg() != 0 {
+		fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", flag.Arg(0))
+		printUsage()
+		os.Exit(1)
+	}
+
+	scenePath := firstNonEmpty(renderScenePath, viewerScenePath)
+	config, err := app.LoadJSONConfig(scenePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "load scene failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	if renderScenePath != "" {
+		if err := app.RenderScene(config); err != nil {
+			fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
+			os.Exit(1)
+		}
 		return
 	}
 
-	config := DefaultConfig()
-	if len(os.Args) > 1 {
-		loaded, err := LoadJSONConfig(os.Args[1])
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "load scene failed: %v\n", err)
-			os.Exit(1)
+	app.RunViewer(config)
+}
+
+func printUsage() {
+	fmt.Fprintln(os.Stderr, "usage:")
+	fmt.Fprintln(os.Stderr, "  go run . -r <scene.json>")
+	fmt.Fprintln(os.Stderr, "  go run . -v <scene.json>")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "flags:")
+	fmt.Fprintln(os.Stderr, "  -r, --render  render a scene to its configured output file")
+	fmt.Fprintln(os.Stderr, "  -v, --viewer  start the browser viewer for a scene")
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
 		}
-		config = loaded
 	}
-	world := scene.BuildWorld(config.Scene)
-	samplingTargets := scene.BuildSampleTargets(config.Scene)
-	cam := camera.New(config.Camera)
-	renderer := render.NewRenderer()
-	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
-	renderer.MaxDepth = config.Render.MaxDepth
-	renderer.Workers = config.Render.Workers
-	renderer.FlushEveryScanline = config.Render.FlushEveryScanline
-	renderer.Background = config.Render.Background
-	renderer.SkyBackground = config.Render.SkyBackground
-	renderer.SamplingTargetWeight = config.Render.SamplingTargetWeight
-	if len(samplingTargets.Objects) > 0 {
-		renderer.SamplingTargets = samplingTargets
-	}
-	if err := renderer.Render(cam, world, config.OutputPath); err != nil {
-		fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-func runViewer() {
-	config := DefaultConfig()
-	world := scene.BuildWorld(config.Scene)
-	samplingTargets := scene.BuildSampleTargets(config.Scene)
-	renderer := render.NewRenderer()
-	renderer.SamplesPerPixel = 1
-	renderer.MaxDepth = 6
-	renderer.Background = config.Render.Background
-	renderer.SkyBackground = config.Render.SkyBackground
-	renderer.SamplingTargetWeight = config.Render.SamplingTargetWeight
-	if len(samplingTargets.Objects) > 0 {
-		renderer.SamplingTargets = samplingTargets
-	}
-
-	http.HandleFunc("/", serveViewer)
-	http.HandleFunc("/render", func(w http.ResponseWriter, r *http.Request) {
-		config := configFromRequest(r)
-		img := renderer.RenderRGBA(camera.New(config), world)
-
-		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set("Cache-Control", "no-store")
-		if err := png.Encode(w, img); err != nil {
-			log.Printf("encode png: %v", err)
-		}
-	})
-
-	addr := "localhost:8080"
-	fmt.Printf("viewer running at http://%s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
-}
-
-func configFromRequest(r *http.Request) camera.Config {
-	base := DefaultConfig().Camera
-	width := queryInt(r, "width", 480)
-	height := queryInt(r, "height", 270)
-	if height < 1 {
-		height = 1
-	}
-
-	position := rtmath.NewVec3(
-		queryFloat(r, "px", spawnX),
-		queryFloat(r, "py", spawnY),
-		queryFloat(r, "pz", spawnZ),
-	)
-	yaw := queryFloat(r, "yaw", spawnYaw)
-	pitch := queryFloat(r, "pitch", spawnPitch)
-	direction := viewDirection(yaw, pitch)
-
-	base.ImageWidth = width
-	base.AspectRatio = float64(width) / float64(height)
-	base.LookFrom = position
-	base.LookAt = position.Add(direction)
-	base.VUp = rtmath.NewVec3(0, 1, 0)
-	base.FocusDist = stdmath.Max(0.1, queryFloat(r, "focus", spawnFocus))
-	if queryBool(r, "dof", spawnDOF) {
-		base.DefocusAngle = 2.0
-	} else {
-		base.DefocusAngle = 0
-	}
-
-	return base
-}
-
-func viewDirection(yaw, pitch float64) rtmath.Vec3 {
-	cp := stdmath.Cos(pitch)
-	return rtmath.UnitVector(rtmath.NewVec3(
-		cp*stdmath.Cos(yaw),
-		stdmath.Sin(pitch),
-		cp*stdmath.Sin(yaw),
-	))
-}
-
-func queryInt(r *http.Request, key string, fallback int) int {
-	value, err := strconv.Atoi(r.URL.Query().Get(key))
-	if err != nil {
-		return fallback
-	}
-	return value
-}
-
-func queryFloat(r *http.Request, key string, fallback float64) float64 {
-	value, err := strconv.ParseFloat(r.URL.Query().Get(key), 64)
-	if err != nil {
-		return fallback
-	}
-	return value
-}
-
-func queryBool(r *http.Request, key string, fallback bool) bool {
-	value := r.URL.Query().Get(key)
-	if value == "" {
-		return fallback
-	}
-	return value == "1" || value == "true"
-}
-
-func serveViewer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, viewerHTML)
+	return ""
 }
