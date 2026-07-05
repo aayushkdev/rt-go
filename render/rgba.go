@@ -70,9 +70,9 @@ func rgbaColor(pixelColor rtmath.Color, samplesPerPixel int) color.RGBA {
 	scale := 1.0 / float64(samplesPerPixel)
 	intensity := rtmath.NewInterval(0, 0.999)
 
-	r := intensity.Clamp(linearToGamma(pixelColor.X * scale))
-	g := intensity.Clamp(linearToGamma(pixelColor.Y * scale))
-	b := intensity.Clamp(linearToGamma(pixelColor.Z * scale))
+	r := intensity.Clamp(linearToGamma(cleanComponent(pixelColor.X * scale)))
+	g := intensity.Clamp(linearToGamma(cleanComponent(pixelColor.Y * scale)))
+	b := intensity.Clamp(linearToGamma(cleanComponent(pixelColor.Z * scale)))
 
 	return color.RGBA{
 		R: uint8(255.999 * r),
@@ -80,6 +80,14 @@ func rgbaColor(pixelColor rtmath.Color, samplesPerPixel int) color.RGBA {
 		B: uint8(255.999 * b),
 		A: 255,
 	}
+}
+
+func cleanComponent(component float64) float64 {
+	if stdmath.IsNaN(component) || stdmath.IsInf(component, 0) {
+		return 0
+	}
+
+	return component
 }
 
 func linearToGamma(linearComponent float64) float64 {
