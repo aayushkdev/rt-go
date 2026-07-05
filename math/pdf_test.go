@@ -2,6 +2,26 @@ package math
 
 import "testing"
 
+func TestSpherePDFValue(t *testing.T) {
+	pdf := NewSpherePDF()
+
+	if got := pdf.Value(NewVec3(1, 0, 0)); !near(got, 1/(4*Pi)) {
+		t.Fatalf("sphere pdf = %v, want %v", got, 1/(4*Pi))
+	}
+}
+
+func TestSpherePDFGenerateReturnsUnitVector(t *testing.T) {
+	random := NewRandom(1)
+	pdf := NewSpherePDF()
+
+	for i := 0; i < 1000; i++ {
+		direction := pdf.Generate(random)
+		if !near(direction.Length(), 1) {
+			t.Fatalf("direction length = %v, want 1", direction.Length())
+		}
+	}
+}
+
 func TestCosinePDFValue(t *testing.T) {
 	pdf := NewCosinePDF(NewVec3(0, 1, 0))
 

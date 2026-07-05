@@ -35,11 +35,12 @@ func DefaultConfig() AppConfig {
 		// position, LookAt is what it points at, and Focus/Defocus control
 		// depth of field.
 		Camera: Camera().
-			Size(800).
-			FOV(36).
-			From(0, 1.35, 3.0).
-			LookAt(0, 1.45, -2.15).
-			Focus(5.15).
+			Size(600).
+			Aspect(1).
+			FOV(40).
+			From(0, 1.5, 4.0).
+			LookAt(0, 1.5, -2.0).
+			Focus(6).
 			Config(),
 
 		// Render quality settings.
@@ -48,7 +49,7 @@ func DefaultConfig() AppConfig {
 		// Workers controls CPU goroutines. Use 0 to use all CPU cores.
 		// FlushEveryScanline controls how often image.ppm is synced while rendering.
 		Render: RenderConfig{
-			SamplesPerPixel:    1000,
+			SamplesPerPixel:    10,
 			MaxDepth:           20,
 			Workers:            0,
 			FlushEveryScanline: 10,
@@ -77,25 +78,29 @@ func DefaultConfig() AppConfig {
 		// Keep the camera outside reflective/glass objects, or the render can go black/slow.
 		Scene: Scene(
 			// Cornell-style room.
-			Floor(-2, -4, 2, 0, 0, Matte(0.75, 0.75, 0.75)),
-			Floor(-2, -4, 2, 0, 3, Matte(0.75, 0.75, 0.75)),
-			WallZ(-4, -2, 2, 0, 3, Matte(0.75, 0.75, 0.75)),
-			WallX(-2, 0, 3, 0, -4, Matte(0.75, 0.15, 0.15)),
-			WallX(2, 0, 3, -4, 0, Matte(0.15, 0.55, 0.2)),
+			Floor(-2, -4, 2, 0, 0, Matte(0.73, 0.73, 0.73)),
+			Floor(-2, -4, 2, 0, 3, Matte(0.73, 0.73, 0.73)),
+			WallZ(-4, -2, 2, 0, 3, Matte(0.73, 0.73, 0.73)),
+			WallX(-2, 0, 3, 0, -4, Matte(0.12, 0.45, 0.15)),
+			WallX(2, 0, 3, -4, 0, Matte(0.65, 0.05, 0.05)),
 
 			// Bright rectangle light on the ceiling.
-			CeilingLight(-0.65, -2.65, 0.65, -1.35, 2.98, 10, 10, 10),
+			CeilingLight(-0.55, -2.45, 0.55, -1.55, 2.98, 15, 15, 15),
 
 			// Boxes inside the room.
-			Box(
-				Point(-1.25, 0, -2.8),
-				Point(-0.35, 1.35, -1.9),
-				Matte(0.75, 0.75, 0.75),
+			Translate(
+				RotateY(
+					Box(Point(-0.45, 0, -0.45), Point(0.45, 1.75, 0.45), Matte(0.73, 0.73, 0.73)),
+					15,
+				),
+				-0.65, 0, -2.45,
 			),
-			Box(
-				Point(0.35, 0, -2.35),
-				Point(1.2, 0.8, -1.45),
-				Matte(0.75, 0.75, 0.75),
+			Translate(
+				RotateY(
+					Box(Point(-0.45, 0, -0.45), Point(0.45, 0.9, 0.45), Matte(0.73, 0.73, 0.73)),
+					-18,
+				),
+				0.75, 0, -1.75,
 			),
 		),
 	}

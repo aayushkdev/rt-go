@@ -5,6 +5,20 @@ type PDF interface {
 	Generate(random *Random) Vec3
 }
 
+type SpherePDF struct{}
+
+func NewSpherePDF() SpherePDF {
+	return SpherePDF{}
+}
+
+func (p SpherePDF) Value(direction Vec3) float64 {
+	return 1 / (4 * Pi)
+}
+
+func (p SpherePDF) Generate(random *Random) Vec3 {
+	return random.UnitVector()
+}
+
 type CosinePDF struct {
 	UVW ONB
 }
