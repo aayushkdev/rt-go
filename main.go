@@ -41,6 +41,7 @@ func main() {
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
 	renderer.MaxDepth = config.Render.MaxDepth
+	renderer.Workers = config.Render.Workers
 	renderer.FlushEveryScanline = config.Render.FlushEveryScanline
 	renderer.Background = config.Render.Background
 	renderer.SkyBackground = config.Render.SkyBackground

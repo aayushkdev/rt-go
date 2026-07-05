@@ -19,9 +19,9 @@ func NewMetal(albedo rtmath.Color, fuzz float64) Metal {
 	}
 }
 
-func (m Metal) Scatter(rayIn rtmath.Ray, hit HitInfo) (rtmath.Color, rtmath.Ray, bool) {
+func (m Metal) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
 	reflected := rtmath.Reflect(rayIn.Direction, hit.Normal).Unit()
-	reflected = reflected.Add(rtmath.RandomUnitVector().Mul(m.Fuzz))
+	reflected = reflected.Add(random.UnitVector().Mul(m.Fuzz))
 	scattered := rtmath.NewRay(hit.Point, reflected)
 
 	return m.Albedo, scattered, rtmath.Dot(scattered.Direction, hit.Normal) > 0

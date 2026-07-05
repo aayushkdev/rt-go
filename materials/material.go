@@ -11,7 +11,7 @@ type HitInfo struct {
 
 type Material interface {
 	Emitted(hit HitInfo) rtmath.Color
-	Scatter(rayIn rtmath.Ray, hit HitInfo) (rtmath.Color, rtmath.Ray, bool)
+	Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool)
 }
 
 type BaseMaterial struct{}

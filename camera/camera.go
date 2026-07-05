@@ -93,10 +93,14 @@ func (c Camera) RayForPixel(i, j int) rtmath.Ray {
 }
 
 func (c Camera) RayForPixelSample(i, j int, offsetU, offsetV float64) rtmath.Ray {
+	return c.RayForPixelSampleRandom(i, j, offsetU, offsetV, nil)
+}
+
+func (c Camera) RayForPixelSampleRandom(i, j int, offsetU, offsetV float64, random *rtmath.Random) rtmath.Ray {
 	pixelCenter := c.Pixel00.
 		Add(c.PixelDeltaU.Mul(float64(i) + offsetU)).
 		Add(c.PixelDeltaV.Mul(float64(j) + offsetV))
-	rayOrigin := c.rayOrigin()
+	rayOrigin := c.rayOrigin(random)
 	rayDirection := pixelCenter.Sub(rayOrigin)
 
 	return rtmath.NewRay(rayOrigin, rayDirection)
@@ -106,11 +110,11 @@ func degreesToRadians(degrees float64) float64 {
 	return degrees * rtmath.Pi / 180
 }
 
-func (c Camera) rayOrigin() rtmath.Point3 {
+func (c Camera) rayOrigin(random *rtmath.Random) rtmath.Point3 {
 	if !c.Defocus {
 		return c.Center
 	}
 
-	p := rtmath.RandomInUnitDisk()
+	p := random.InUnitDisk()
 	return c.Center.Add(c.DefocusU.Mul(p.X)).Add(c.DefocusV.Mul(p.Y))
 }

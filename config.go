@@ -16,6 +16,7 @@ type AppConfig struct {
 type RenderConfig struct {
 	SamplesPerPixel    int
 	MaxDepth           int
+	Workers            int
 	FlushEveryScanline int
 	Background         rtmath.Color
 	SkyBackground      bool
@@ -44,10 +45,12 @@ func DefaultConfig() AppConfig {
 		// Render quality settings.
 		// SamplesPerPixel reduces noise/aliasing. Higher is cleaner but slower.
 		// MaxDepth controls how many times rays can bounce.
+		// Workers controls CPU goroutines. Use 0 to use all CPU cores.
 		// FlushEveryScanline controls how often image.ppm is synced while rendering.
 		Render: RenderConfig{
 			SamplesPerPixel:    1000,
 			MaxDepth:           20,
+			Workers:            0,
 			FlushEveryScanline: 10,
 			Background:         Point(0, 0, 0),
 			SkyBackground:      false,

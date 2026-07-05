@@ -14,6 +14,6 @@ func (d DiffuseLight) Emitted(hit HitInfo) rtmath.Color {
 	return d.Emit
 }
 
-func (d DiffuseLight) Scatter(rayIn rtmath.Ray, hit HitInfo) (rtmath.Color, rtmath.Ray, bool) {
+func (d DiffuseLight) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
 	return rtmath.Color{}, rtmath.Ray{}, false
 }

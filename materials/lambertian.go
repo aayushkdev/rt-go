@@ -11,8 +11,8 @@ func NewLambertian(albedo rtmath.Color) Lambertian {
 	return Lambertian{Albedo: albedo}
 }
 
-func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo) (rtmath.Color, rtmath.Ray, bool) {
-	scatterDirection := hit.Normal.Add(rtmath.RandomUnitVector())
+func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
+	scatterDirection := hit.Normal.Add(random.UnitVector())
 	if scatterDirection.NearZero() {
 		scatterDirection = hit.Normal
 	}

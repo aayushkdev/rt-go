@@ -4,6 +4,9 @@ import (
 	"fmt"
 	stdmath "math"
 	"os"
+	"runtime"
+	"sync"
+	"time"
 
 	"github.com/aayushkdev/rt-go/camera"
 	"github.com/aayushkdev/rt-go/geometry"
@@ -14,6 +17,7 @@ import (
 type Renderer struct {
 	SamplesPerPixel    int
 	MaxDepth           int
+	Workers            int
 	FlushEveryScanline int
 	Background         rtmath.Color
 	SkyBackground      bool
@@ -23,6 +27,7 @@ func NewRenderer() Renderer {
 	return Renderer{
 		SamplesPerPixel:    10,
 		MaxDepth:           50,
+		Workers:            runtime.NumCPU(),
 		FlushEveryScanline: 10,
 		SkyBackground:      true,
 	}
@@ -35,31 +40,91 @@ func (r Renderer) Render(cam camera.Camera, world geometry.Hittable, outputPath 
 	}
 
 	rowStride := cam.ImageWidth * 3
+	workerCount := r.workerCount()
+	printRenderInfo(cam, r, workerCount)
+	jobs := make(chan int)
+	results := make(chan scanline, workerCount)
+	done := make(chan struct{})
+	var closeDone sync.Once
+	var wg sync.WaitGroup
+
+	for worker := 0; worker < workerCount; worker++ {
+		wg.Add(1)
+		go func(worker int) {
+			defer wg.Done()
+			random := rtmath.NewRandom(time.Now().UnixNano() + int64(worker))
+			for {
+				select {
+				case <-done:
+					return
+				case j, ok := <-jobs:
+					if !ok {
+						return
+					}
+					row := r.renderScanline(cam, world, j, rowStride, random)
+					select {
+					case results <- scanline{Index: j, Row: row}:
+					case <-done:
+						return
+					}
+				}
+			}
+		}(worker)
+	}
+
+	go func() {
+		defer close(jobs)
+		for j := 0; j < cam.ImageHeight; j++ {
+			select {
+			case jobs <- j:
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
 	pendingRows := make(map[int][]byte)
+	completedRows := 0
+	var renderErr error
+	progressTicker := time.NewTicker(time.Second)
+	defer progressTicker.Stop()
+	printProgress(cam.ImageHeight, completedRows, workerCount)
 
-	for j := 0; j < cam.ImageHeight; j++ {
-		fmt.Fprintf(os.Stderr, "\rScanlines remaining: %d ", cam.ImageHeight-j)
-		row := make([]byte, rowStride)
-		for i := 0; i < cam.ImageWidth; i++ {
-			pixelColor := rtmath.NewVec3(0, 0, 0)
-			for sample := 0; sample < r.SamplesPerPixel; sample++ {
-				ray := cam.RayForPixelSample(i, j, sampleOffset(), sampleOffset())
-				pixelColor = pixelColor.Add(r.rayColor(ray, world, r.MaxDepth))
+	for results != nil {
+		select {
+		case result, ok := <-results:
+			if !ok {
+				results = nil
+				continue
 			}
-			rByte, gByte, bByte := rtimage.ColorBytes(pixelColor, r.SamplesPerPixel)
-			offset := i * 3
-			row[offset] = rByte
-			row[offset+1] = gByte
-			row[offset+2] = bByte
-		}
+			if renderErr != nil {
+				continue
+			}
 
-		pendingRows[j] = row
-		if r.FlushEveryScanline <= 0 || (j+1)%r.FlushEveryScanline == 0 {
-			if err := writeRows(outputPath, headerSize, rowStride, pendingRows); err != nil {
-				return err
+			completedRows++
+			printProgress(cam.ImageHeight, completedRows, workerCount)
+
+			pendingRows[result.Index] = result.Row
+			if r.FlushEveryScanline <= 0 || len(pendingRows) >= r.FlushEveryScanline {
+				renderErr = writeRows(outputPath, headerSize, rowStride, pendingRows)
+				if renderErr != nil {
+					closeDone.Do(func() { close(done) })
+					continue
+				}
+				pendingRows = make(map[int][]byte)
 			}
-			pendingRows = make(map[int][]byte)
+		case <-progressTicker.C:
+			printProgress(cam.ImageHeight, completedRows, workerCount)
 		}
+	}
+
+	if renderErr != nil {
+		return renderErr
 	}
 
 	if len(pendingRows) > 0 {
@@ -68,9 +133,55 @@ func (r Renderer) Render(cam camera.Camera, world geometry.Hittable, outputPath 
 		}
 	}
 
-	fmt.Fprintln(os.Stderr, "\rDone.                 ")
+	printRenderStatus("Done.")
+	fmt.Fprintln(os.Stderr)
 
 	return nil
+}
+
+func printRenderInfo(cam camera.Camera, renderer Renderer, workerCount int) {
+	fmt.Fprintf(os.Stderr, "Image: %dx%d\n", cam.ImageWidth, cam.ImageHeight)
+	fmt.Fprintf(os.Stderr, "Samples: %d\n", renderer.SamplesPerPixel)
+	fmt.Fprintf(os.Stderr, "Max depth: %d\n", renderer.MaxDepth)
+	fmt.Fprintf(os.Stderr, "Workers: %d\n", workerCount)
+}
+
+func printProgress(totalRows, completedRows, workerCount int) {
+	printRenderStatus(fmt.Sprintf("Scanlines remaining: %d", totalRows-completedRows))
+}
+
+func printRenderStatus(message string) {
+	fmt.Fprintf(os.Stderr, "\r%-90s", message)
+}
+
+type scanline struct {
+	Index int
+	Row   []byte
+}
+
+func (r Renderer) workerCount() int {
+	if r.Workers > 0 {
+		return r.Workers
+	}
+	return runtime.NumCPU()
+}
+
+func (r Renderer) renderScanline(cam camera.Camera, world geometry.Hittable, j, rowStride int, random *rtmath.Random) []byte {
+	row := make([]byte, rowStride)
+	for i := 0; i < cam.ImageWidth; i++ {
+		pixelColor := rtmath.NewVec3(0, 0, 0)
+		for sample := 0; sample < r.SamplesPerPixel; sample++ {
+			ray := cam.RayForPixelSampleRandom(i, j, sampleOffset(random), sampleOffset(random), random)
+			pixelColor = pixelColor.Add(r.rayColor(ray, world, r.MaxDepth, random))
+		}
+		rByte, gByte, bByte := rtimage.ColorBytes(pixelColor, r.SamplesPerPixel)
+		offset := i * 3
+		row[offset] = rByte
+		row[offset+1] = gByte
+		row[offset+2] = bByte
+	}
+
+	return row
 }
 
 func createPPM(outputPath string, cam camera.Camera) (int, error) {
@@ -123,7 +234,7 @@ func writeRows(outputPath string, headerSize, rowStride int, rows map[int][]byte
 	return nil
 }
 
-func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int) rtmath.Color {
+func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, random *rtmath.Random) rtmath.Color {
 	if depth <= 0 {
 		return rtmath.NewVec3(0, 0, 0)
 	}
@@ -131,12 +242,12 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int) r
 	record, hit := world.Hit(ray, rtmath.NewInterval(0.001, stdmath.Inf(1)))
 	if hit {
 		emitted := record.Material.Emitted(record.HitInfo)
-		attenuation, scattered, ok := record.Material.Scatter(ray, record.HitInfo)
+		attenuation, scattered, ok := record.Material.Scatter(ray, record.HitInfo, random)
 		if !ok {
 			return emitted
 		}
 
-		return emitted.Add(attenuation.MulVec(r.rayColor(scattered, world, depth-1)))
+		return emitted.Add(attenuation.MulVec(r.rayColor(scattered, world, depth-1, random)))
 	}
 
 	if !r.SkyBackground {
@@ -151,6 +262,6 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int) r
 	return white.Mul(1.0 - a).Add(blue.Mul(a))
 }
 
-func sampleOffset() float64 {
-	return rtmath.RandomFloat64() - 0.5
+func sampleOffset(random *rtmath.Random) float64 {
+	return random.Float64() - 0.5
 }
