@@ -35,18 +35,21 @@ func main() {
 		return
 	}
 
-	world := scene.DefaultWorld()
-	config := scene.DefaultCameraConfig()
-	cam := camera.New(config)
+	config := DefaultConfig()
+	world := scene.BuildWorld(config.Scene)
+	cam := camera.New(config.Camera)
 	renderer := render.NewRenderer()
-	if err := renderer.Render(cam, world, "image.ppm"); err != nil {
+	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
+	renderer.MaxDepth = config.Render.MaxDepth
+	if err := renderer.Render(cam, world, config.OutputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func runViewer() {
-	world := scene.DefaultWorld()
+	config := DefaultConfig()
+	world := scene.BuildWorld(config.Scene)
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = 1
 	renderer.MaxDepth = 6
@@ -69,7 +72,7 @@ func runViewer() {
 }
 
 func configFromRequest(r *http.Request) camera.Config {
-	base := scene.DefaultCameraConfig()
+	base := DefaultConfig().Camera
 	width := queryInt(r, "width", 480)
 	height := queryInt(r, "height", 270)
 	if height < 1 {

@@ -1,49 +1,48 @@
 package scene
 
 import (
-	"github.com/aayushkdev/rt-go/camera"
 	"github.com/aayushkdev/rt-go/geometry"
 	"github.com/aayushkdev/rt-go/loader"
 	"github.com/aayushkdev/rt-go/materials"
 	rtmath "github.com/aayushkdev/rt-go/math"
 )
 
-func DefaultCameraConfig() camera.Config {
-	return camera.Config{
-		ImageWidth:   800,
-		AspectRatio:  16.0 / 9.0,
-		VFov:         30,
-		LookFrom:     rtmath.NewVec3(0, 1, 2),
-		LookAt:       rtmath.NewVec3(0, 0, -2),
-		VUp:          rtmath.NewVec3(0, 1, 0),
-		DefocusAngle: 0,
-		FocusDist:    4.0,
+func BuildWorld(config Config) geometry.World {
+	world := geometry.NewWorld()
+	for _, object := range config.Objects {
+		world.Add(buildObject(object))
 	}
-}
-
-func DefaultWorld() geometry.World {
-	materialGround := materials.NewLambertian(rtmath.NewVec3(0.8, 0.8, 0.0))
-	materialFigurine := materials.NewMetal(rtmath.NewVec3(0.75, 0.75, 0.75), 0.15)
-	figurine := loadFigurine(materialFigurine)
-
-	world := geometry.NewWorld(
-		figurine,
-		geometry.NewSphere(rtmath.NewVec3(0, -100.5, -1), 100, materialGround),
-	)
 
 	return geometry.NewWorld(geometry.NewBVH(world.Objects))
 }
 
-func loadFigurine(material materials.Material) geometry.Hittable {
-	figurine, err := loader.LoadOBJWithMaterials("models/figurine.obj")
+func buildObject(object Object) geometry.Hittable {
+	switch object.Kind {
+	case "model":
+		return loadModel(object)
+	case "sphere":
+		return geometry.NewSphere(object.Center, object.Radius, object.Material)
+	case "triangle":
+		return geometry.NewTriangle(object.A, object.B, object.C, object.Material)
+	default:
+		return geometry.EmptyHittable{}
+	}
+}
+
+func loadModel(object Object) geometry.Hittable {
+	figurine, err := loader.LoadOBJWithMaterials(object.Path)
 	if err != nil {
-		return fallbackPyramid(material)
+		return fallbackPyramid(materials.NewMetal(rtmath.NewVec3(0.75, 0.75, 0.75), 0.15))
 	}
 
-	figurine.FitHeight(1.0)
+	figurine.FitHeight(object.Height)
 	min, max, ok := figurine.Bounds()
 	if ok {
-		figurine.Translate(rtmath.NewVec3(-max.X/2, 0.02-min.Y, -3.1-max.Z/2))
+		figurine.Translate(rtmath.NewVec3(
+			object.Position.X-max.X/2,
+			object.Position.Y-min.Y,
+			object.Position.Z-max.Z/2,
+		))
 	}
 	figurine.BuildBVH()
 
