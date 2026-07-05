@@ -52,7 +52,7 @@ func DefaultConfig() AppConfig {
 		// SamplingTargetWeight is the chance to sample lights/important objects
 		// instead of the material PDF. Higher usually reduces small-light grain.
 		Render: RenderConfig{
-			SamplesPerPixel:      500,
+			SamplesPerPixel:      1000,
 			MaxDepth:             20,
 			Workers:              0,
 			FlushEveryScanline:   10,
@@ -92,10 +92,10 @@ func DefaultConfig() AppConfig {
 			// Centered soft white key light.
 			CeilingLight(-0.65, -2.1, 0.65, -1.1, 2.98, 13, 13, 13),
 
-			// Matte color panels behind the glass for visible refraction.
-			Quad(Point(-0.72, 0.72, -4.38), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.75, 0.20, 0.16)),
-			Quad(Point(-0.36, 0.72, -4.37), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.92, 0.72, 0.18)),
-			Quad(Point(0.00, 0.72, -4.36), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.18, 0.42, 0.78)),
+			// Matte color panels attached to the back wall for visible refraction.
+			Quad(Point(-0.78, 0.68, -4.79), Point(0.26, 0, 0), Point(0, 1.05, 0), Matte(0.75, 0.20, 0.16)),
+			Quad(Point(-0.39, 0.68, -4.79), Point(0.26, 0, 0), Point(0, 1.05, 0), Matte(0.92, 0.72, 0.18)),
+			Quad(Point(0.00, 0.68, -4.79), Point(0.26, 0, 0), Point(0, 1.05, 0), Matte(0.18, 0.42, 0.78)),
 
 			// Matte pedestal.
 			Translate(
@@ -108,8 +108,8 @@ func DefaultConfig() AppConfig {
 
 			// Main materials.
 			AsSampleTarget(Sphere(0, 0.82, -1.6, 0.48, Glass(1.5))),
-			Sphere(-0.92, 0.43, -1.55, 0.38, Metal(0.88, 0.86, 0.80, 0.05)),
-			Sphere(0.94, 0.38, -1.63, 0.34, Matte(0.15, 0.38, 0.85)),
+			Sphere(-1.18, 0.38, -1.55, 0.38, Metal(0.88, 0.86, 0.80, 0.05)),
+			Sphere(1.18, 0.34, -1.63, 0.34, Matte(0.15, 0.38, 0.85)),
 
 			// Small diffuse color swatches.
 			Sphere(-1.35, 0.16, -0.95, 0.16, Matte(0.9, 0.14, 0.10)),
