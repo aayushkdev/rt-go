@@ -12,6 +12,10 @@ func NewDiffuseLight(emit rtmath.Color) DiffuseLight {
 }
 
 func (d DiffuseLight) Emitted(hit HitInfo) rtmath.Color {
+	if !hit.FrontFace {
+		return rtmath.NewVec3(0, 0, 0)
+	}
+
 	return d.Emit
 }
 
