@@ -16,7 +16,7 @@ func NewTexturedLambertian(albedo Texture) Lambertian {
 }
 
 func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
-	attenuation := l.Albedo.Value(0, 0, hit.Point)
+	attenuation := l.Albedo.Value(hit.U, hit.V, hit.Point)
 	return NewPDFScatter(attenuation, rtmath.NewCosinePDF(hit.Normal)), true
 }
 

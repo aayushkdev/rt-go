@@ -59,6 +59,8 @@ func (q Quad) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 		HitInfo: materials.HitInfo{
 			T:     t,
 			Point: intersection,
+			U:     alpha,
+			V:     beta,
 		},
 		Material: q.Material,
 	}

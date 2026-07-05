@@ -35,7 +35,7 @@ Scene objects:
 Materials and lights:
 
 - Lambertian matte materials
-- Texture support: solid
+- Texture support: solid, checker, image
 - Metal materials
 - Dielectric glass materials
 - Diffuse light materials

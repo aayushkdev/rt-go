@@ -6,6 +6,8 @@ type HitInfo struct {
 	Point     rtmath.Point3
 	Normal    rtmath.Vec3
 	T         float64
+	U         float64
+	V         float64
 	FrontFace bool
 }
 

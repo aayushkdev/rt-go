@@ -73,6 +73,8 @@ func (t Triangle) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 		HitInfo: materials.HitInfo{
 			T:     hitT,
 			Point: ray.At(hitT),
+			U:     u,
+			V:     v,
 		},
 		Material: t.Material,
 	}

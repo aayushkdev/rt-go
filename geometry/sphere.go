@@ -50,9 +50,17 @@ func (s Sphere) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 		Material: s.Material,
 	}
 	outwardNormal := record.Point.Sub(s.Center).Div(s.Radius)
+	record.U, record.V = sphereUV(outwardNormal)
 	record.SetFaceNormal(ray, outwardNormal)
 
 	return record, true
+}
+
+func sphereUV(point rtmath.Point3) (float64, float64) {
+	theta := stdmath.Acos(-point.Y)
+	phi := stdmath.Atan2(-point.Z, point.X) + rtmath.Pi
+
+	return phi / (2 * rtmath.Pi), theta / rtmath.Pi
 }
 
 func (s Sphere) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {

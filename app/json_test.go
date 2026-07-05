@@ -1,6 +1,11 @@
 package app
 
 import (
+	stdimage "image"
+	"image/color"
+	"image/png"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/aayushkdev/rt-go/materials"
@@ -150,5 +155,46 @@ func TestParseJSONConfigSupportsSolidTexture(t *testing.T) {
 	color := material.Albedo.Value(0, 0, rtmath.Point3{})
 	if color != rtmath.NewVec3(0.2, 0.4, 0.8) {
 		t.Fatalf("texture color = %#v", color)
+	}
+}
+
+func TestTextureFromJSONSupportsChecker(t *testing.T) {
+	texture, err := textureFromJSON(fileTexture{
+		Type:  "checker",
+		Scale: 1,
+		Even:  &fileTexture{Type: "solid", Color: []float64{1, 1, 1}},
+		Odd:   &fileTexture{Type: "solid", Color: []float64{0, 0, 0}},
+	}, nil)
+	if err != nil {
+		t.Fatalf("build texture: %v", err)
+	}
+
+	if _, ok := texture.(materials.CheckerTexture); !ok {
+		t.Fatalf("texture = %T, want materials.CheckerTexture", texture)
+	}
+}
+
+func TestTextureFromJSONSupportsImage(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "texture.png")
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	img := stdimage.NewRGBA(stdimage.Rect(0, 0, 1, 1))
+	img.Set(0, 0, color.RGBA{R: 25, G: 50, B: 100, A: 255})
+	if err := png.Encode(file, img); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	texture, err := textureFromJSON(fileTexture{Type: "image", Path: path}, nil)
+	if err != nil {
+		t.Fatalf("build texture: %v", err)
+	}
+
+	if _, ok := texture.(materials.ImageTexture); !ok {
+		t.Fatalf("texture = %T, want materials.ImageTexture", texture)
 	}
 }

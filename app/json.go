@@ -47,8 +47,12 @@ type fileMaterial struct {
 }
 
 type fileTexture struct {
-	Type  string    `json:"type"`
-	Color []float64 `json:"color"`
+	Type  string       `json:"type"`
+	Color []float64    `json:"color"`
+	Path  string       `json:"path"`
+	Scale float64      `json:"scale"`
+	Even  *fileTexture `json:"even"`
+	Odd   *fileTexture `json:"odd"`
 }
 
 type fileObject struct {
@@ -360,6 +364,31 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 			return nil, err
 		}
 		return materials.NewSolidColor(color), nil
+	case "checker":
+		if texture.Even == nil {
+			return nil, fmt.Errorf("texture.even is required for checker textures")
+		}
+		if texture.Odd == nil {
+			return nil, fmt.Errorf("texture.odd is required for checker textures")
+		}
+		even, err := textureFromJSON(*texture.Even, nil)
+		if err != nil {
+			return nil, fmt.Errorf("texture.even: %w", err)
+		}
+		odd, err := textureFromJSON(*texture.Odd, nil)
+		if err != nil {
+			return nil, fmt.Errorf("texture.odd: %w", err)
+		}
+		return materials.NewCheckerTexture(texture.Scale, even, odd), nil
+	case "image":
+		if texture.Path == "" {
+			return nil, fmt.Errorf("texture.path is required for image textures")
+		}
+		imageTexture, err := materials.NewImageTexture(texture.Path)
+		if err != nil {
+			return nil, err
+		}
+		return imageTexture, nil
 	default:
 		return nil, fmt.Errorf("unknown texture type %q", texture.Type)
 	}

@@ -1,7 +1,7 @@
 # Scene guide
 
 Scenes are JSON files. Start from `examples/gallery.json`,
-`examples/cornell.json`, or `examples/textures.json`, then edit the values.
+`examples/cornell.json`, or `examples/paintbox.json`, then edit the values.
 
 ## 1. File shape
 
@@ -89,8 +89,8 @@ Matte is diffuse and rough.
 }
 ```
 
-Matte can also use an explicit texture. Right now the implemented texture type
-is `solid`, which behaves like a normal color but uses the texture system.
+Matte can also use an explicit texture. Supported texture types are `solid`,
+`checker`, and `image`.
 
 ```json
 "material": {
@@ -103,7 +103,35 @@ is `solid`, which behaves like a normal color but uses the texture system.
 ```
 
 The old `color` form and the new `texture` form both work. The texture form is
-the base for checker, image, and noise textures later.
+the path for adding more texture types later.
+
+Checker texture:
+
+```json
+"material": {
+  "type": "matte",
+  "texture": {
+    "type": "checker",
+    "scale": 4,
+    "even": { "type": "solid", "color": [0.8, 0.8, 0.8] },
+    "odd": { "type": "solid", "color": [0.2, 0.25, 0.2] }
+  }
+}
+```
+
+Image texture:
+
+```json
+"material": {
+  "type": "matte",
+  "texture": {
+    "type": "image",
+    "path": "examples/earth.jpg"
+  }
+}
+```
+
+Image textures use Go's image decoder, so JPG and PNG files work.
 
 ### 4.2 Metal
 
@@ -141,7 +169,7 @@ Field | Used by | Meaning
 --- | --- | ---
 `type` | all | `matte`, `metal`, `glass`, or `light`.
 `color` | matte, metal, light | Base color or emission color.
-`texture` | matte | Texture object. Currently supports `solid`.
+`texture` | matte | Texture object. Supports `solid`, `checker`, and `image`.
 `fuzz` | metal | Reflection roughness.
 `refraction` | glass | Refraction index.
 
@@ -383,7 +411,7 @@ Notes:
 - `mtllib` paths are resolved relative to the OBJ file.
 - If a face has `vn` normals, the mesh uses smooth normals.
 - If a face has no `vn` normals, it uses flat triangle normals.
-- Texture coordinates and image textures are ignored for now.
+- OBJ texture coordinates and MTL texture maps are ignored for now.
 
 MTL mapping:
 
