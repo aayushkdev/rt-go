@@ -34,6 +34,9 @@ func buildObject(object Object) geometry.Hittable {
 		hittable = geometry.EmptyHittable{}
 	}
 
+	if object.RotateY != 0 {
+		hittable = geometry.NewRotateY(hittable, object.RotateY)
+	}
 	if !object.Offset.NearZero() {
 		hittable = geometry.NewTranslate(hittable, object.Offset)
 	}

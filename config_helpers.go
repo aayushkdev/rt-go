@@ -96,6 +96,11 @@ func Translate(object scene.Object, x, y, z float64) scene.Object {
 	return scene.Translate(object, x, y, z)
 }
 
+// RotateY rotates any object around the Y axis by angle degrees.
+func RotateY(object scene.Object, angle float64) scene.Object {
+	return scene.RotateY(object, angle)
+}
+
 // Floor creates a horizontal X/Z quad at height y.
 func Floor(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
 	return Quad(
