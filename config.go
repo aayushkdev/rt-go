@@ -38,10 +38,10 @@ func DefaultConfig() AppConfig {
 		Camera: Camera().
 			Size(600).
 			Aspect(1).
-			FOV(40).
-			From(0, 1.5, 4.0).
-			LookAt(0, 1.5, -2.0).
-			Focus(6).
+			FOV(44).
+			From(0, 1.35, 4.2).
+			LookAt(0, 1.15, -1.6).
+			Focus(5.8).
 			Config(),
 
 		// Render quality settings.
@@ -52,13 +52,13 @@ func DefaultConfig() AppConfig {
 		// SamplingTargetWeight is the chance to sample lights/important objects
 		// instead of the material PDF. Higher usually reduces small-light grain.
 		Render: RenderConfig{
-			SamplesPerPixel:      10,
+			SamplesPerPixel:      500,
 			MaxDepth:             20,
 			Workers:              0,
 			FlushEveryScanline:   10,
 			Background:           Point(0, 0, 0),
 			SkyBackground:        false,
-			SamplingTargetWeight: 0.999999,
+			SamplingTargetWeight: 0.5,
 		},
 
 		// Object formats:
@@ -82,31 +82,40 @@ func DefaultConfig() AppConfig {
 		//
 		// Keep the camera outside reflective/glass objects, or the render can go black/slow.
 		Scene: Scene(
-			// Cornell-style room.
-			Floor(-2, -4, 2, 0, 0, Matte(0.73, 0.73, 0.73)),
-			Floor(-2, -4, 2, 0, 3, Matte(0.73, 0.73, 0.73)),
-			WallZ(-4, -2, 2, 0, 3, Matte(0.73, 0.73, 0.73)),
-			WallX(-2, 0, 3, 0, -4, Matte(0.12, 0.45, 0.15)),
-			WallX(2, 0, 3, -4, 0, Matte(0.65, 0.05, 0.05)),
+			// Material gallery room.
+			Floor(-3.0, -4.8, 3.0, 3.6, 0, Matte(0.68, 0.70, 0.66)),
+			Floor(-3.0, -4.8, 3.0, 0.9, 3, Matte(0.58, 0.60, 0.62)),
+			WallZ(-4.8, -3.0, 3.0, 0, 3, Matte(0.58, 0.60, 0.62)),
+			WallX(-3.0, 0, 3, 0.9, -4.8, Matte(0.52, 0.56, 0.58)),
+			WallX(3.0, 0, 3, -4.8, 0.9, Matte(0.60, 0.56, 0.52)),
 
-			// Bright rectangle light on the ceiling.
-			CeilingLight(-0.55, -2.45, 0.55, -1.55, 2.98, 15, 15, 15),
+			// Centered soft white key light.
+			CeilingLight(-0.65, -2.1, 0.65, -1.1, 2.98, 13, 13, 13),
 
-			// Boxes inside the room.
+			// Matte color panels behind the glass for visible refraction.
+			Quad(Point(-0.72, 0.72, -4.38), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.75, 0.20, 0.16)),
+			Quad(Point(-0.36, 0.72, -4.37), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.92, 0.72, 0.18)),
+			Quad(Point(0.00, 0.72, -4.36), Point(0.22, 0, 0), Point(0, 0.95, 0), Matte(0.18, 0.42, 0.78)),
+
+			// Matte pedestal.
 			Translate(
 				RotateY(
-					Box(Point(-0.45, 0, -0.45), Point(0.45, 1.75, 0.45), Matte(0.73, 0.73, 0.73)),
-					15,
+					Box(Point(-0.72, 0, -0.42), Point(0.72, 0.34, 0.42), Matte(0.72, 0.70, 0.64)),
+					-8,
 				),
-				-0.65, 0, -2.45,
+				0, 0, -1.6,
 			),
-			Translate(
-				RotateY(
-					Box(Point(-0.45, 0, -0.45), Point(0.45, 0.9, 0.45), Matte(0.73, 0.73, 0.73)),
-					-18,
-				),
-				0.75, 0, -1.75,
-			),
+
+			// Main materials.
+			AsSampleTarget(Sphere(0, 0.82, -1.6, 0.48, Glass(1.5))),
+			Sphere(-0.92, 0.43, -1.55, 0.38, Metal(0.88, 0.86, 0.80, 0.05)),
+			Sphere(0.94, 0.38, -1.63, 0.34, Matte(0.15, 0.38, 0.85)),
+
+			// Small diffuse color swatches.
+			Sphere(-1.35, 0.16, -0.95, 0.16, Matte(0.9, 0.14, 0.10)),
+			Sphere(-0.95, 0.14, -0.82, 0.14, Matte(0.95, 0.72, 0.12)),
+			Sphere(0.98, 0.13, -0.82, 0.13, Matte(0.15, 0.75, 0.35)),
+			Sphere(1.34, 0.15, -0.96, 0.15, Metal(0.75, 0.80, 0.92, 0.35)),
 		),
 	}
 }

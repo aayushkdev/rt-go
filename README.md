@@ -1,12 +1,12 @@
 # rt-go
 
-rt-go is a small ray tracer written in Go.
+rt-go is a small path tracer written in Go. It renders spheres, boxes, quads,
+triangles, OBJ meshes, matte/metal/glass materials, and emissive lights.
 
-Website:
+![Demo render](outputs/demo.ppm)
 
-```text
-https://rt.aayushk.dev
-```
+![Cornell render](outputs/connel.ppm)
+
 
 ## Usage
 
@@ -30,6 +30,9 @@ This writes:
 image.ppm
 ```
 
+Edit `config.go` to change the camera, render quality, objects, materials, and
+lights.
+
 For the browser viewer:
 
 ```sh
@@ -44,17 +47,25 @@ http://localhost:8080
 
 ## Features
 
-- CPU ray tracing
+- CPU path tracing
+- Parallel scanline rendering
 - Antialiasing
 - Gamma correction
-- Spheres, triangles, and triangle meshes
+- Direct light sampling
+- Weighted sampling targets
+- One-sided diffuse lights
+- Spheres, quads, boxes, triangles, and triangle meshes
 - OBJ loading
 - MTL material loading
-- Lambertian, metal, and dielectric materials
+- Smooth OBJ normals
+- Lambertian, metal, dielectric, and diffuse light materials
+- Translate and Y-axis rotation transforms
 - BVH acceleration
-- PPM image output
+- PPM image output with live scanline updates
 - Simple browser viewer
 
 ## Notes
 
 Large OBJ files can take time to load because the renderer parses the mesh and builds a BVH before rendering.
+
+The default scene is defined in Go code for now.
