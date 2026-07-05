@@ -3,9 +3,9 @@
 rt-go is a small path tracer written in Go. It renders spheres, boxes, quads,
 triangles, OBJ meshes, matte/metal/glass materials, and emissive lights.
 
-![Demo render](outputs/demo.ppm)
+![Cornell render](outputs/connel.png)
 
-![Cornell render](outputs/connel.ppm)
+![Demo render](outputs/demo.png)
 
 
 ## Usage
