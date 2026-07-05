@@ -89,6 +89,17 @@ func TestImageTextureConvertsSRGBToLinear(t *testing.T) {
 	}
 }
 
+func TestNoiseTextureReturnsBoundedColor(t *testing.T) {
+	texture := NewNoiseTexture(4, rtmath.NewVec3(0.8, 0.6, 0.4))
+	color := texture.Value(0, 0, rtmath.NewVec3(0.25, 0.5, 0.75))
+
+	if color.X < 0 || color.X > 0.8 ||
+		color.Y < 0 || color.Y > 0.6 ||
+		color.Z < 0 || color.Z > 0.4 {
+		t.Fatalf("noise color out of bounds: %#v", color)
+	}
+}
+
 func nearColor(a, b rtmath.Color) bool {
 	const epsilon = 1e-5
 	return stdmath.Abs(a.X-b.X) < epsilon &&

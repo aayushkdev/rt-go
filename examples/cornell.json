@@ -25,7 +25,7 @@
       "x2": 2,
       "z2": 0,
       "y": 0,
-      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.73, 0.73, 0.73] } }
     },
     {
       "type": "floor",
@@ -34,7 +34,7 @@
       "x2": 2,
       "z2": 0,
       "y": 3,
-      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.73, 0.73, 0.73] } }
     },
     {
       "type": "wall_z",
@@ -43,7 +43,7 @@
       "x2": 2,
       "y1": 0,
       "y2": 3,
-      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.73, 0.73, 0.73] } }
     },
     {
       "type": "wall_x",
@@ -52,7 +52,7 @@
       "y2": 3,
       "z1": 0,
       "z2": -4,
-      "material": { "type": "matte", "color": [0.12, 0.45, 0.15] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.12, 0.45, 0.15] } }
     },
     {
       "type": "wall_x",
@@ -61,7 +61,7 @@
       "y2": 3,
       "z1": -4,
       "z2": 0,
-      "material": { "type": "matte", "color": [0.65, 0.05, 0.05] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.65, 0.05, 0.05] } }
     },
     {
       "type": "ceiling_light",
@@ -78,7 +78,7 @@
       "max": [0.45, 1.75, 0.45],
       "rotate_y": 15,
       "move": [-0.65, 0, -2.45],
-      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.73, 0.73, 0.73] } }
     },
     {
       "type": "box",
@@ -86,7 +86,7 @@
       "max": [0.45, 0.9, 0.45],
       "rotate_y": -18,
       "move": [0.75, 0, -1.75],
-      "material": { "type": "matte", "color": [0.73, 0.73, 0.73] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.73, 0.73, 0.73] } }
     },
     {
       "type": "sphere",

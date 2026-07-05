@@ -90,7 +90,7 @@ Matte is diffuse and rough.
 ```
 
 Matte can also use an explicit texture. Supported texture types are `solid`,
-`checker`, and `image`.
+`checker`, `image`, and `noise`.
 
 ```json
 "material": {
@@ -133,6 +133,21 @@ Image texture:
 
 Image textures use Go's image decoder, so JPG and PNG files work.
 
+Noise texture:
+
+```json
+"material": {
+  "type": "matte",
+  "texture": {
+    "type": "noise",
+    "scale": 5,
+    "color": [0.8, 0.78, 0.7]
+  }
+}
+```
+
+Noise is procedural, so it does not need an image file.
+
 ### 4.2 Metal
 
 ```json
@@ -169,7 +184,7 @@ Field | Used by | Meaning
 --- | --- | ---
 `type` | all | `matte`, `metal`, `glass`, or `light`.
 `color` | matte, metal, light | Base color or emission color.
-`texture` | matte | Texture object. Supports `solid`, `checker`, and `image`.
+`texture` | matte | Texture object. Supports `solid`, `checker`, `image`, and `noise`.
 `fuzz` | metal | Reflection roughness.
 `refraction` | glass | Refraction index.
 

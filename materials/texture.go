@@ -124,3 +124,125 @@ func sRGBToLinear(value float64) float64 {
 
 	return stdmath.Pow((value+0.055)/1.055, 2.4)
 }
+
+type NoiseTexture struct {
+	Scale float64
+	Color rtmath.Color
+	Noise Perlin
+}
+
+func NewNoiseTexture(scale float64, color rtmath.Color) NoiseTexture {
+	if scale <= 0 {
+		scale = 1
+	}
+
+	return NoiseTexture{
+		Scale: scale,
+		Color: color,
+		Noise: NewPerlin(),
+	}
+}
+
+func (n NoiseTexture) Value(u, v float64, point rtmath.Point3) rtmath.Color {
+	wave := 0.5 * (1 + stdmath.Sin(n.Scale*point.Z+10*n.Noise.Turbulence(point, 7)))
+	return n.Color.Mul(wave)
+}
+
+type Perlin struct {
+	randomVectors [256]rtmath.Vec3
+	permX         [256]int
+	permY         [256]int
+	permZ         [256]int
+}
+
+func NewPerlin() Perlin {
+	random := rtmath.NewRandom(2024)
+	perlin := Perlin{
+		permX: perlinPermute(random),
+		permY: perlinPermute(random),
+		permZ: perlinPermute(random),
+	}
+
+	for i := range perlin.randomVectors {
+		perlin.randomVectors[i] = random.UnitVector()
+	}
+
+	return perlin
+}
+
+func (p Perlin) Noise(point rtmath.Point3) float64 {
+	u := point.X - stdmath.Floor(point.X)
+	v := point.Y - stdmath.Floor(point.Y)
+	w := point.Z - stdmath.Floor(point.Z)
+	i := int(stdmath.Floor(point.X))
+	j := int(stdmath.Floor(point.Y))
+	k := int(stdmath.Floor(point.Z))
+
+	var c [2][2][2]rtmath.Vec3
+	for di := 0; di < 2; di++ {
+		for dj := 0; dj < 2; dj++ {
+			for dk := 0; dk < 2; dk++ {
+				index := p.permX[(i+di)&255] ^ p.permY[(j+dj)&255] ^ p.permZ[(k+dk)&255]
+				c[di][dj][dk] = p.randomVectors[index]
+			}
+		}
+	}
+
+	return perlinInterpolate(c, u, v, w)
+}
+
+func (p Perlin) Turbulence(point rtmath.Point3, depth int) float64 {
+	accumulation := 0.0
+	tempPoint := point
+	weight := 1.0
+
+	for i := 0; i < depth; i++ {
+		accumulation += weight * p.Noise(tempPoint)
+		weight *= 0.5
+		tempPoint = tempPoint.Mul(2)
+	}
+
+	return stdmath.Abs(accumulation)
+}
+
+func perlinInterpolate(c [2][2][2]rtmath.Vec3, u, v, w float64) float64 {
+	uu := u * u * (3 - 2*u)
+	vv := v * v * (3 - 2*v)
+	ww := w * w * (3 - 2*w)
+	accumulation := 0.0
+
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
+			for k := 0; k < 2; k++ {
+				weight := rtmath.NewVec3(u-float64(i), v-float64(j), w-float64(k))
+				accumulation += blendWeight(i, uu) *
+					blendWeight(j, vv) *
+					blendWeight(k, ww) *
+					rtmath.Dot(c[i][j][k], weight)
+			}
+		}
+	}
+
+	return accumulation
+}
+
+func blendWeight(index int, value float64) float64 {
+	if index == 1 {
+		return value
+	}
+	return 1 - value
+}
+
+func perlinPermute(random *rtmath.Random) [256]int {
+	var permutation [256]int
+	for i := range permutation {
+		permutation[i] = i
+	}
+
+	for i := len(permutation) - 1; i > 0; i-- {
+		target := int(random.Float64Range(0, float64(i+1)))
+		permutation[i], permutation[target] = permutation[target], permutation[i]
+	}
+
+	return permutation
+}

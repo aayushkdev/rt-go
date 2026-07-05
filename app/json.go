@@ -389,6 +389,16 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 			return nil, err
 		}
 		return imageTexture, nil
+	case "noise":
+		color := rtmath.NewVec3(1, 1, 1)
+		if len(texture.Color) > 0 {
+			parsedColor, err := requiredVec(texture.Color, "texture.color")
+			if err != nil {
+				return nil, err
+			}
+			color = parsedColor
+		}
+		return materials.NewNoiseTexture(texture.Scale, color), nil
 	default:
 		return nil, fmt.Errorf("unknown texture type %q", texture.Type)
 	}

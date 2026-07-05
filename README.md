@@ -35,7 +35,7 @@ Scene objects:
 Materials and lights:
 
 - Lambertian matte materials
-- Texture support: solid, checker, image
+- Texture support: solid, checker, image, noise
 - sRGB image texture loading with bilinear filtering
 - Metal materials
 - Dielectric glass materials

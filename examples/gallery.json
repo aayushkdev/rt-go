@@ -25,7 +25,7 @@
       "x2": 3.0,
       "z2": 3.6,
       "y": 0,
-      "material": { "type": "matte", "color": [0.68, 0.70, 0.66] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.68, 0.70, 0.66] } }
     },
     {
       "type": "floor",
@@ -34,7 +34,7 @@
       "x2": 3.0,
       "z2": 0.9,
       "y": 3,
-      "material": { "type": "matte", "color": [0.58, 0.60, 0.62] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.58, 0.60, 0.62] } }
     },
     {
       "type": "wall_z",
@@ -43,7 +43,7 @@
       "x2": 3.0,
       "y1": 0,
       "y2": 3,
-      "material": { "type": "matte", "color": [0.58, 0.60, 0.62] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.58, 0.60, 0.62] } }
     },
     {
       "type": "wall_x",
@@ -52,7 +52,7 @@
       "y2": 3,
       "z1": 0.9,
       "z2": -4.8,
-      "material": { "type": "matte", "color": [0.52, 0.56, 0.58] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.52, 0.56, 0.58] } }
     },
     {
       "type": "wall_x",
@@ -61,7 +61,7 @@
       "y2": 3,
       "z1": -4.8,
       "z2": 0.9,
-      "material": { "type": "matte", "color": [0.60, 0.56, 0.52] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.60, 0.56, 0.52] } }
     },
     {
       "type": "ceiling_light",
@@ -77,21 +77,21 @@
       "q": [-0.78, 0.68, -4.79],
       "u": [0.26, 0, 0],
       "v": [0, 1.05, 0],
-      "material": { "type": "matte", "color": [0.75, 0.20, 0.16] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.75, 0.20, 0.16] } }
     },
     {
       "type": "quad",
       "q": [-0.39, 0.68, -4.79],
       "u": [0.26, 0, 0],
       "v": [0, 1.05, 0],
-      "material": { "type": "matte", "color": [0.92, 0.72, 0.18] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.92, 0.72, 0.18] } }
     },
     {
       "type": "quad",
       "q": [0, 0.68, -4.79],
       "u": [0.26, 0, 0],
       "v": [0, 1.05, 0],
-      "material": { "type": "matte", "color": [0.18, 0.42, 0.78] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.18, 0.42, 0.78] } }
     },
     {
       "type": "box",
@@ -99,7 +99,7 @@
       "max": [0.72, 0.34, 0.42],
       "rotate_y": -8,
       "move": [0, 0, -1.6],
-      "material": { "type": "matte", "color": [0.72, 0.70, 0.64] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.72, 0.70, 0.64] } }
     },
     {
       "type": "sphere",
@@ -117,25 +117,25 @@
       "type": "sphere",
       "center": [1.18, 0.34, -1.63],
       "radius": 0.34,
-      "material": { "type": "matte", "color": [0.15, 0.38, 0.85] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.15, 0.38, 0.85] } }
     },
     {
       "type": "sphere",
       "center": [-1.35, 0.16, -0.95],
       "radius": 0.16,
-      "material": { "type": "matte", "color": [0.9, 0.14, 0.10] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.9, 0.14, 0.10] } }
     },
     {
       "type": "sphere",
       "center": [-0.95, 0.14, -0.82],
       "radius": 0.14,
-      "material": { "type": "matte", "color": [0.95, 0.72, 0.12] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.95, 0.72, 0.12] } }
     },
     {
       "type": "sphere",
       "center": [0.98, 0.13, -0.82],
       "radius": 0.13,
-      "material": { "type": "matte", "color": [0.15, 0.75, 0.35] }
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.15, 0.75, 0.35] } }
     },
     {
       "type": "sphere",

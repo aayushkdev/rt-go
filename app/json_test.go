@@ -12,6 +12,42 @@ import (
 	rtmath "github.com/aayushkdev/rt-go/math"
 )
 
+func TestExampleSceneFilesParse(t *testing.T) {
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chdir(workingDirectory); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	files, err := filepath.Glob(filepath.Join("examples", "*.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) == 0 {
+		t.Fatal("no example scene files found")
+	}
+
+	for _, file := range files {
+		name := filepath.ToSlash(file)
+		t.Run(name, func(t *testing.T) {
+			data, err := os.ReadFile(name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := ParseJSONConfig(data); err != nil {
+				t.Fatalf("parse %s: %v", name, err)
+			}
+		})
+	}
+}
+
 func TestParseJSONConfigDoesNotUseDefaultScene(t *testing.T) {
 	config, err := ParseJSONConfig([]byte(`{
 		"output": "custom.ppm",
@@ -196,5 +232,20 @@ func TestTextureFromJSONSupportsImage(t *testing.T) {
 
 	if _, ok := texture.(materials.ImageTexture); !ok {
 		t.Fatalf("texture = %T, want materials.ImageTexture", texture)
+	}
+}
+
+func TestTextureFromJSONSupportsNoise(t *testing.T) {
+	texture, err := textureFromJSON(fileTexture{
+		Type:  "noise",
+		Scale: 3,
+		Color: []float64{0.8, 0.7, 0.6},
+	}, nil)
+	if err != nil {
+		t.Fatalf("build texture: %v", err)
+	}
+
+	if _, ok := texture.(materials.NoiseTexture); !ok {
+		t.Fatalf("texture = %T, want materials.NoiseTexture", texture)
 	}
 }
