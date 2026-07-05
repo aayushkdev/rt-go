@@ -235,6 +235,23 @@ func TestTextureFromJSONSupportsImage(t *testing.T) {
 	}
 }
 
+func TestTextureFromJSONAppliesUVTransform(t *testing.T) {
+	texture, err := textureFromJSON(fileTexture{
+		Type:     "solid",
+		Color:    []float64{0.2, 0.3, 0.4},
+		UVScale:  []float64{2, 3},
+		UVOffset: []float64{0.1, 0.2},
+		UVRotate: 15,
+	}, nil)
+	if err != nil {
+		t.Fatalf("build texture: %v", err)
+	}
+
+	if _, ok := texture.(materials.TextureTransform); !ok {
+		t.Fatalf("texture = %T, want materials.TextureTransform", texture)
+	}
+}
+
 func TestTextureFromJSONSupportsNoise(t *testing.T) {
 	texture, err := textureFromJSON(fileTexture{
 		Type:  "noise",

@@ -133,6 +133,24 @@ Image texture:
 
 Image textures use Go's image decoder, so JPG and PNG files work.
 
+Texture UV transforms:
+
+```json
+"texture": {
+  "type": "image",
+  "path": "examples/earth.jpg",
+  "uv_scale": [2, 2],
+  "uv_offset": [0.1, 0],
+  "uv_rotate": 15
+}
+```
+
+Field | Meaning
+--- | ---
+`uv_scale` | Tiles/scales texture coordinates as `[u, v]`.
+`uv_offset` | Shifts texture coordinates as `[u, v]`.
+`uv_rotate` | Rotates texture coordinates in degrees around the texture center.
+
 Noise texture:
 
 ```json
@@ -405,6 +423,7 @@ OBJ model loading is used by `type: "model"`.
 Supported OBJ lines:
 
 - `v x y z` vertices
+- `vt u v` texture coordinates
 - `vn x y z` vertex normals for smooth shading
 - `f ...` faces
 - `mtllib file.mtl` material library references
@@ -424,9 +443,10 @@ Notes:
 - Faces with more than three vertices are triangulated.
 - Positive and negative OBJ indices are supported.
 - `mtllib` paths are resolved relative to the OBJ file.
+- `map_Kd` paths are resolved relative to the MTL file.
 - If a face has `vn` normals, the mesh uses smooth normals.
 - If a face has no `vn` normals, it uses flat triangle normals.
-- OBJ texture coordinates and MTL texture maps are ignored for now.
+- If a face has `vt` texture coordinates, image textures use those UVs.
 
 MTL mapping:
 
@@ -440,6 +460,7 @@ MTL field | How rt-go uses it
 `d value` | Alpha. Values below `0.95` become glass.
 `Tr value` | Transparency. Converted to alpha with `1 - Tr`.
 `illum value` | Helps classify glass and metal.
+`map_Kd path` | Diffuse image texture for matte materials.
 
 Mapping rules:
 
@@ -447,7 +468,7 @@ Mapping rules:
 - Specular MTL materials become `metal`.
 - Everything else becomes `matte`.
 - Missing MTL files or unknown `usemtl` names fall back to mirror-like metal.
-- Texture maps like `map_Kd` are ignored.
+- Unsupported texture maps are ignored.
 
 ## 8. Quick object template
 

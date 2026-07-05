@@ -50,7 +50,11 @@
       "radius": 0.58,
       "material": {
         "type": "matte",
-        "texture": { "type": "image", "path": "examples/earth.jpg" }
+        "texture": {
+          "type": "image",
+          "path": "examples/earth.jpg",
+          "uv_offset": [0.08, 0]
+        }
       }
     },
     {

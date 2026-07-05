@@ -37,6 +37,8 @@ Materials and lights:
 - Lambertian matte materials
 - Texture support: solid, checker, image, noise
 - sRGB image texture loading with bilinear filtering
+- Texture UV scale, offset, and rotation
+- OBJ texture coordinates and MTL diffuse texture maps
 - Metal materials
 - Dielectric glass materials
 - Diffuse light materials

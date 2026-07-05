@@ -47,12 +47,15 @@ type fileMaterial struct {
 }
 
 type fileTexture struct {
-	Type  string       `json:"type"`
-	Color []float64    `json:"color"`
-	Path  string       `json:"path"`
-	Scale float64      `json:"scale"`
-	Even  *fileTexture `json:"even"`
-	Odd   *fileTexture `json:"odd"`
+	Type     string       `json:"type"`
+	Color    []float64    `json:"color"`
+	Path     string       `json:"path"`
+	Scale    float64      `json:"scale"`
+	UVScale  []float64    `json:"uv_scale"`
+	UVOffset []float64    `json:"uv_offset"`
+	UVRotate float64      `json:"uv_rotate"`
+	Even     *fileTexture `json:"even"`
+	Odd      *fileTexture `json:"odd"`
 }
 
 type fileObject struct {
@@ -363,7 +366,7 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 		if err != nil {
 			return nil, err
 		}
-		return materials.NewSolidColor(color), nil
+		return applyTextureTransform(materials.NewSolidColor(color), texture)
 	case "checker":
 		if texture.Even == nil {
 			return nil, fmt.Errorf("texture.even is required for checker textures")
@@ -379,7 +382,7 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 		if err != nil {
 			return nil, fmt.Errorf("texture.odd: %w", err)
 		}
-		return materials.NewCheckerTexture(texture.Scale, even, odd), nil
+		return applyTextureTransform(materials.NewCheckerTexture(texture.Scale, even, odd), texture)
 	case "image":
 		if texture.Path == "" {
 			return nil, fmt.Errorf("texture.path is required for image textures")
@@ -388,7 +391,7 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 		if err != nil {
 			return nil, err
 		}
-		return imageTexture, nil
+		return applyTextureTransform(imageTexture, texture)
 	case "noise":
 		color := rtmath.NewVec3(1, 1, 1)
 		if len(texture.Color) > 0 {
@@ -398,10 +401,34 @@ func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Te
 			}
 			color = parsedColor
 		}
-		return materials.NewNoiseTexture(texture.Scale, color), nil
+		return applyTextureTransform(materials.NewNoiseTexture(texture.Scale, color), texture)
 	default:
 		return nil, fmt.Errorf("unknown texture type %q", texture.Type)
 	}
+}
+
+func applyTextureTransform(texture materials.Texture, config fileTexture) (materials.Texture, error) {
+	scaleU, scaleV := 1.0, 1.0
+	if len(config.UVScale) > 0 {
+		if len(config.UVScale) != 2 {
+			return nil, fmt.Errorf("texture.uv_scale must have exactly 2 numbers")
+		}
+		scaleU, scaleV = config.UVScale[0], config.UVScale[1]
+	}
+
+	offsetU, offsetV := 0.0, 0.0
+	if len(config.UVOffset) > 0 {
+		if len(config.UVOffset) != 2 {
+			return nil, fmt.Errorf("texture.uv_offset must have exactly 2 numbers")
+		}
+		offsetU, offsetV = config.UVOffset[0], config.UVOffset[1]
+	}
+
+	if scaleU == 1 && scaleV == 1 && offsetU == 0 && offsetV == 0 && config.UVRotate == 0 {
+		return texture, nil
+	}
+
+	return materials.NewTextureTransform(texture, scaleU, scaleV, offsetU, offsetV, config.UVRotate), nil
 }
 
 func floorObject(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {

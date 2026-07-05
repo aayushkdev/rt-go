@@ -89,6 +89,17 @@ func TestImageTextureConvertsSRGBToLinear(t *testing.T) {
 	}
 }
 
+func TestTextureTransformScalesOffsetsAndRotatesUV(t *testing.T) {
+	source := recordingTexture{}
+	transform := NewTextureTransform(source, 2, 3, 0.1, 0.2, 90)
+
+	color := transform.Value(0.25, 0.5, rtmath.Point3{})
+	want := rtmath.NewVec3(-0.4, 0.7, 0)
+	if !nearColor(color, want) {
+		t.Fatalf("transformed uv = %#v, want %#v", color, want)
+	}
+}
+
 func TestNoiseTextureReturnsBoundedColor(t *testing.T) {
 	texture := NewNoiseTexture(4, rtmath.NewVec3(0.8, 0.6, 0.4))
 	color := texture.Value(0, 0, rtmath.NewVec3(0.25, 0.5, 0.75))
@@ -98,6 +109,12 @@ func TestNoiseTextureReturnsBoundedColor(t *testing.T) {
 		color.Z < 0 || color.Z > 0.4 {
 		t.Fatalf("noise color out of bounds: %#v", color)
 	}
+}
+
+type recordingTexture struct{}
+
+func (r recordingTexture) Value(u, v float64, point rtmath.Point3) rtmath.Color {
+	return rtmath.NewVec3(u, v, 0)
 }
 
 func nearColor(a, b rtmath.Color) bool {

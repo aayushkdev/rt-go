@@ -1,6 +1,9 @@
 package loader
 
 import (
+	stdimage "image"
+	"image/color"
+	"image/png"
 	"os"
 	"path/filepath"
 	"testing"
@@ -92,6 +95,41 @@ f 1//1 2//2 3//3
 	}
 }
 
+func TestLoadOBJUsesTextureCoordinates(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "triangle.obj")
+	err := os.WriteFile(path, []byte(`
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vt 0.2 0.3
+vt 0.8 0.3
+vt 0.2 0.9
+f 1/1 2/2 3/3
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mesh, err := LoadOBJ(path, materials.NewLambertian(rtmath.NewVec3(1, 0, 0)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	triangle := mesh.Triangles[0]
+	if !triangle.HasUV {
+		t.Fatal("triangle.HasUV = false, want true")
+	}
+	if triangle.UVA != rtmath.NewVec3(0.2, 0.3, 0) {
+		t.Fatalf("triangle.UVA = %#v", triangle.UVA)
+	}
+	if triangle.UVB != rtmath.NewVec3(0.8, 0.3, 0) {
+		t.Fatalf("triangle.UVB = %#v", triangle.UVB)
+	}
+	if triangle.UVC != rtmath.NewVec3(0.2, 0.9, 0) {
+		t.Fatalf("triangle.UVC = %#v", triangle.UVC)
+	}
+}
+
 func TestLoadOBJWithMaterialsUsesMTLColor(t *testing.T) {
 	dir := t.TempDir()
 	objPath := filepath.Join(dir, "model.obj")
@@ -128,6 +166,52 @@ Kd 0.1 0.2 0.9
 	albedo := material.Albedo.Value(0, 0, rtmath.Point3{})
 	if albedo != rtmath.NewVec3(0.1, 0.2, 0.9) {
 		t.Fatalf("material albedo = %#v", albedo)
+	}
+}
+
+func TestLoadOBJWithMaterialsUsesDiffuseTextureMap(t *testing.T) {
+	dir := t.TempDir()
+	objPath := filepath.Join(dir, "model.obj")
+	mtlPath := filepath.Join(dir, "model.mtl")
+	texturePath := filepath.Join(dir, "diffuse.png")
+
+	if err := writeTestPNG(texturePath, color.RGBA{R: 255, G: 128, B: 0, A: 255}); err != nil {
+		t.Fatal(err)
+	}
+	err := os.WriteFile(objPath, []byte(`
+mtllib model.mtl
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vt 0 0
+vt 1 0
+vt 0 1
+usemtl mapped
+f 1/1 2/2 3/3
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile(mtlPath, []byte(`
+newmtl mapped
+Kd 0.1 0.1 0.1
+map_Kd diffuse.png
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mesh, err := LoadOBJWithMaterials(objPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	material, ok := mesh.Triangles[0].Material.(materials.Lambertian)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Lambertian", mesh.Triangles[0].Material)
+	}
+	if _, ok := material.Albedo.(materials.ImageTexture); !ok {
+		t.Fatalf("material.Albedo = %T, want materials.ImageTexture", material.Albedo)
 	}
 }
 
@@ -173,6 +257,19 @@ illum 2
 	if material.Fuzz != 0.5 {
 		t.Fatalf("material.Fuzz = %v, want 0.5", material.Fuzz)
 	}
+}
+
+func writeTestPNG(path string, pixel color.RGBA) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	image := stdimage.NewRGBA(stdimage.Rect(0, 0, 1, 1))
+	image.Set(0, 0, pixel)
+
+	return png.Encode(file, image)
 }
 
 func TestLoadOBJWithMaterialsMapsTransparencyToDielectric(t *testing.T) {

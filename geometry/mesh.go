@@ -32,6 +32,16 @@ func (m *Mesh) AddSmoothTriangle(a, b, c rtmath.Point3, normalA, normalB, normal
 	m.Tree = nil
 }
 
+func (m *Mesh) AddTexturedTriangle(a, b, c rtmath.Point3, uvA, uvB, uvC rtmath.Vec3, material materials.Material) {
+	m.Triangles = append(m.Triangles, NewTexturedTriangle(a, b, c, uvA, uvB, uvC, material))
+	m.Tree = nil
+}
+
+func (m *Mesh) AddSmoothTexturedTriangle(a, b, c rtmath.Point3, normalA, normalB, normalC, uvA, uvB, uvC rtmath.Vec3, material materials.Material) {
+	m.Triangles = append(m.Triangles, NewSmoothTexturedTriangle(a, b, c, normalA, normalB, normalC, uvA, uvB, uvC, material))
+	m.Tree = nil
+}
+
 func (m Mesh) Bounds() (rtmath.Point3, rtmath.Point3, bool) {
 	if len(m.Triangles) == 0 {
 		return rtmath.Point3{}, rtmath.Point3{}, false

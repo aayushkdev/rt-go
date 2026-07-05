@@ -14,7 +14,11 @@ type Triangle struct {
 	NormalA  rtmath.Vec3
 	NormalB  rtmath.Vec3
 	NormalC  rtmath.Vec3
+	UVA      rtmath.Vec3
+	UVB      rtmath.Vec3
+	UVC      rtmath.Vec3
 	Smooth   bool
+	HasUV    bool
 	Material materials.Material
 }
 
@@ -31,6 +35,27 @@ func NewSmoothTriangle(a, b, c rtmath.Point3, normalA, normalB, normalC rtmath.V
 		NormalB:  rtmath.UnitVector(normalB),
 		NormalC:  rtmath.UnitVector(normalC),
 		Smooth:   true,
+		Material: material,
+	}
+}
+
+func NewTexturedTriangle(a, b, c rtmath.Point3, uvA, uvB, uvC rtmath.Vec3, material materials.Material) Triangle {
+	return Triangle{A: a, B: b, C: c, UVA: uvA, UVB: uvB, UVC: uvC, HasUV: true, Material: material}
+}
+
+func NewSmoothTexturedTriangle(a, b, c rtmath.Point3, normalA, normalB, normalC, uvA, uvB, uvC rtmath.Vec3, material materials.Material) Triangle {
+	return Triangle{
+		A:        a,
+		B:        b,
+		C:        c,
+		NormalA:  rtmath.UnitVector(normalA),
+		NormalB:  rtmath.UnitVector(normalB),
+		NormalC:  rtmath.UnitVector(normalC),
+		UVA:      uvA,
+		UVB:      uvB,
+		UVC:      uvC,
+		Smooth:   true,
+		HasUV:    true,
 		Material: material,
 	}
 }
@@ -73,11 +98,10 @@ func (t Triangle) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 		HitInfo: materials.HitInfo{
 			T:     hitT,
 			Point: ray.At(hitT),
-			U:     u,
-			V:     v,
 		},
 		Material: t.Material,
 	}
+	record.U, record.V = t.uvAt(u, v)
 	record.SetFaceNormal(ray, outwardNormal)
 
 	return record, true
@@ -137,4 +161,17 @@ func (t Triangle) normalAt(u, v float64, edgeAB, edgeAC rtmath.Vec3) rtmath.Vec3
 	}
 
 	return rtmath.UnitVector(normal)
+}
+
+func (t Triangle) uvAt(u, v float64) (float64, float64) {
+	if !t.HasUV {
+		return u, v
+	}
+
+	w := 1 - u - v
+	uv := t.UVA.Mul(w).
+		Add(t.UVB.Mul(u)).
+		Add(t.UVC.Mul(v))
+
+	return uv.X, uv.Y
 }

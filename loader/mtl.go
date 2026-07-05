@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -85,6 +86,10 @@ func loadMTL(path string, materialsByName map[string]materials.Material) error {
 			}
 			current.illumination = value
 			current.hasIllumination = true
+		case "map_Kd":
+			if len(fields) >= 2 {
+				current.diffuseMapPath = filepath.Join(filepath.Dir(path), fields[len(fields)-1])
+			}
 		}
 	}
 	current.store(materialsByName)
@@ -104,6 +109,7 @@ type mtlMaterial struct {
 	refractionIndex    float64
 	alpha              float64
 	illumination       int
+	diffuseMapPath     string
 	hasDiffuse         bool
 	hasSpecular        bool
 	hasShininess       bool
@@ -133,6 +139,13 @@ func (m mtlMaterial) store(materialsByName map[string]materials.Material) {
 	if m.isMetal() {
 		materialsByName[m.name] = materials.NewMetal(m.diffuse, m.metalFuzz())
 		return
+	}
+	if m.diffuseMapPath != "" {
+		texture, err := materials.NewImageTexture(m.diffuseMapPath)
+		if err == nil {
+			materialsByName[m.name] = materials.NewTexturedLambertian(texture)
+			return
+		}
 	}
 
 	materialsByName[m.name] = materials.NewLambertian(m.diffuse)

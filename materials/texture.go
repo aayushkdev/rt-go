@@ -15,6 +15,50 @@ type Texture interface {
 	Value(u, v float64, point rtmath.Point3) rtmath.Color
 }
 
+type TextureTransform struct {
+	Source  Texture
+	ScaleU  float64
+	ScaleV  float64
+	OffsetU float64
+	OffsetV float64
+	Rotate  float64
+}
+
+func NewTextureTransform(source Texture, scaleU, scaleV, offsetU, offsetV, rotateDegrees float64) TextureTransform {
+	if scaleU == 0 {
+		scaleU = 1
+	}
+	if scaleV == 0 {
+		scaleV = 1
+	}
+
+	return TextureTransform{
+		Source:  source,
+		ScaleU:  scaleU,
+		ScaleV:  scaleV,
+		OffsetU: offsetU,
+		OffsetV: offsetV,
+		Rotate:  rotateDegrees * rtmath.Pi / 180,
+	}
+}
+
+func (t TextureTransform) Value(u, v float64, point rtmath.Point3) rtmath.Color {
+	u *= t.ScaleU
+	v *= t.ScaleV
+	if t.Rotate != 0 {
+		centeredU := u - 0.5
+		centeredV := v - 0.5
+		cosTheta := stdmath.Cos(t.Rotate)
+		sinTheta := stdmath.Sin(t.Rotate)
+		u = centeredU*cosTheta - centeredV*sinTheta + 0.5
+		v = centeredU*sinTheta + centeredV*cosTheta + 0.5
+	}
+	u += t.OffsetU
+	v += t.OffsetV
+
+	return t.Source.Value(u, v, point)
+}
+
 type SolidColor struct {
 	Color rtmath.Color
 }
@@ -92,8 +136,8 @@ func (i ImageTexture) Value(u, v float64, point rtmath.Point3) rtmath.Color {
 		return rtmath.NewVec3(1, 0, 1)
 	}
 
-	u = rtmath.NewInterval(0, 1).Clamp(u)
-	v = 1 - rtmath.NewInterval(0, 1).Clamp(v)
+	u = normalizeUV(u)
+	v = 1 - normalizeUV(v)
 
 	x := u * float64(i.Width-1)
 	y := v * float64(i.Height-1)
@@ -115,6 +159,13 @@ func (i ImageTexture) pixel(x, y int) rtmath.Color {
 
 func lerpColor(a, b rtmath.Color, t float64) rtmath.Color {
 	return a.Mul(1 - t).Add(b.Mul(t))
+}
+
+func normalizeUV(value float64) float64 {
+	if value < 0 || value > 1 {
+		return value - stdmath.Floor(value)
+	}
+	return value
 }
 
 func sRGBToLinear(value float64) float64 {
