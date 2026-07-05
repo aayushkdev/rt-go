@@ -3,6 +3,7 @@ package materials
 import rtmath "github.com/aayushkdev/rt-go/math"
 
 type DiffuseLight struct {
+	BaseMaterial
 	Emit rtmath.Color
 }
 
@@ -14,6 +15,6 @@ func (d DiffuseLight) Emitted(hit HitInfo) rtmath.Color {
 	return d.Emit
 }
 
-func (d DiffuseLight) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
-	return rtmath.Color{}, rtmath.Ray{}, false
+func (d DiffuseLight) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
+	return ScatterRecord{}, false
 }

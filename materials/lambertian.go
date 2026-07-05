@@ -11,12 +11,18 @@ func NewLambertian(albedo rtmath.Color) Lambertian {
 	return Lambertian{Albedo: albedo}
 }
 
-func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
-	uvw := rtmath.NewONBFromW(hit.Normal)
-	scatterDirection := uvw.Local(random.CosineDirection())
-	if scatterDirection.NearZero() {
-		scatterDirection = hit.Normal
+func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
+	return ScatterRecord{
+		Attenuation: l.Albedo,
+		PDF:         rtmath.NewCosinePDF(hit.Normal),
+	}, true
+}
+
+func (l Lambertian) ScatteringPDF(rayIn rtmath.Ray, hit HitInfo, scattered rtmath.Ray) float64 {
+	cosineTheta := rtmath.Dot(hit.Normal, rtmath.UnitVector(scattered.Direction))
+	if cosineTheta <= 0 {
+		return 0
 	}
 
-	return l.Albedo, rtmath.NewRay(hit.Point, scatterDirection), true
+	return cosineTheta / rtmath.Pi
 }

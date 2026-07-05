@@ -15,7 +15,7 @@ func NewDielectric(refractionIndex float64) Dielectric {
 	return Dielectric{RefractionIndex: refractionIndex}
 }
 
-func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (rtmath.Color, rtmath.Ray, bool) {
+func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
 	attenuation := rtmath.NewVec3(1, 1, 1)
 	refractionRatio := d.RefractionIndex
 	if hit.FrontFace {
@@ -32,7 +32,11 @@ func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random
 		direction = rtmath.Reflect(unitDirection, hit.Normal)
 	}
 
-	return attenuation, rtmath.NewRay(hit.Point, direction), true
+	return ScatterRecord{
+		Attenuation: attenuation,
+		Scattered:   rtmath.NewRay(hit.Point, direction),
+		SkipPDF:     true,
+	}, true
 }
 
 func reflectance(cosine, refractionIndex float64) float64 {

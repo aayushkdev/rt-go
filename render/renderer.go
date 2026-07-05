@@ -243,12 +243,27 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 	record, hit := world.Hit(ray, rtmath.NewInterval(0.001, stdmath.Inf(1)))
 	if hit {
 		emitted := record.Material.Emitted(record.HitInfo)
-		attenuation, scattered, ok := record.Material.Scatter(ray, record.HitInfo, random)
+		scatter, ok := record.Material.Scatter(ray, record.HitInfo, random)
 		if !ok {
 			return emitted
 		}
 
-		return emitted.Add(attenuation.MulVec(r.rayColor(scattered, world, depth-1, random)))
+		if scatter.SkipPDF {
+			return emitted.Add(scatter.Attenuation.MulVec(r.rayColor(scatter.Scattered, world, depth-1, random)))
+		}
+
+		scattered := rtmath.NewRay(record.Point, scatter.PDF.Generate(random))
+		pdfValue := scatter.PDF.Value(scattered.Direction)
+		if pdfValue <= 0 {
+			return emitted
+		}
+
+		scatteringPDF := record.Material.ScatteringPDF(ray, record.HitInfo, scattered)
+		scatterColor := r.rayColor(scattered, world, depth-1, random).
+			Mul(scatteringPDF / pdfValue).
+			MulVec(scatter.Attenuation)
+
+		return emitted.Add(scatterColor)
 	}
 
 	if !r.SkyBackground {
