@@ -91,6 +91,11 @@ func Quad(q, u, v rtmath.Vec3, material materials.Material) scene.Object {
 	return scene.Quad(q, u, v, material)
 }
 
+// Translate moves any object by x/y/z without changing its original shape.
+func Translate(object scene.Object, x, y, z float64) scene.Object {
+	return scene.Translate(object, x, y, z)
+}
+
 // Floor creates a horizontal X/Z quad at height y.
 func Floor(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
 	return Quad(

@@ -12,6 +12,7 @@ type Config struct {
 type Object struct {
 	Kind     string
 	Material materials.Material
+	Offset   rtmath.Vec3
 
 	Path     string
 	Height   float64
@@ -56,6 +57,11 @@ func Triangle(a, b, c rtmath.Point3, material materials.Material) Object {
 
 func Quad(q, u, v rtmath.Vec3, material materials.Material) Object {
 	return Object{Kind: "quad", A: q, U: u, V: v, Material: material}
+}
+
+func Translate(object Object, x, y, z float64) Object {
+	object.Offset = object.Offset.Add(rtmath.NewVec3(x, y, z))
+	return object
 }
 
 func (o Object) At(x, y, z float64) Object {

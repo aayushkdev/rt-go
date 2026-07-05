@@ -61,6 +61,7 @@ func DefaultConfig() AppConfig {
 		// WallX(x, y1, y2, z1, z2, material)
 		// WallZ(z, x1, x2, y1, y2, material)
 		// CeilingLight(x1, z1, x2, z2, y, r, g, b)
+		// Translate(object, x, y, z)
 		// Model(path).WithHeight(height).At(x, y, z)
 		//
 		// Material formats:

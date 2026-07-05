@@ -17,20 +17,28 @@ func BuildWorld(config Config) geometry.World {
 }
 
 func buildObject(object Object) geometry.Hittable {
+	var hittable geometry.Hittable
+
 	switch object.Kind {
 	case "model":
-		return loadModel(object)
+		hittable = loadModel(object)
 	case "sphere":
-		return geometry.NewSphere(object.Center, object.Radius, object.Material)
+		hittable = geometry.NewSphere(object.Center, object.Radius, object.Material)
 	case "box":
-		return geometry.NewBox(object.Min, object.Max, object.Material)
+		hittable = geometry.NewBox(object.Min, object.Max, object.Material)
 	case "triangle":
-		return geometry.NewTriangle(object.A, object.B, object.C, object.Material)
+		hittable = geometry.NewTriangle(object.A, object.B, object.C, object.Material)
 	case "quad":
-		return geometry.NewQuad(object.A, object.U, object.V, object.Material)
+		hittable = geometry.NewQuad(object.A, object.U, object.V, object.Material)
 	default:
-		return geometry.EmptyHittable{}
+		hittable = geometry.EmptyHittable{}
 	}
+
+	if !object.Offset.NearZero() {
+		hittable = geometry.NewTranslate(hittable, object.Offset)
+	}
+
+	return hittable
 }
 
 func loadModel(object Object) geometry.Hittable {

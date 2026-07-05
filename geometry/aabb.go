@@ -28,6 +28,14 @@ func SurroundingBox(a, b AABB) AABB {
 	}
 }
 
+func (box AABB) Translate(offset rtmath.Vec3) AABB {
+	return AABB{
+		X: rtmath.NewInterval(box.X.Min+offset.X, box.X.Max+offset.X),
+		Y: rtmath.NewInterval(box.Y.Min+offset.Y, box.Y.Max+offset.Y),
+		Z: rtmath.NewInterval(box.Z.Min+offset.Z, box.Z.Max+offset.Z),
+	}
+}
+
 func (box AABB) Hit(ray rtmath.Ray, rayT rtmath.Interval) bool {
 	for axis := 0; axis < 3; axis++ {
 		axisInterval := box.Axis(axis)
