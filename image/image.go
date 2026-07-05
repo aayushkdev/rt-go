@@ -9,6 +9,11 @@ import (
 )
 
 func WriteColor(out io.Writer, pixelColor rtmath.Color, samplesPerPixel int) {
+	rByte, gByte, bByte := ColorBytes(pixelColor, samplesPerPixel)
+	fmt.Fprintf(out, "%d %d %d\n", rByte, gByte, bByte)
+}
+
+func ColorBytes(pixelColor rtmath.Color, samplesPerPixel int) (byte, byte, byte) {
 	scale := 1.0 / float64(samplesPerPixel)
 	intensity := rtmath.NewInterval(0, 0.999)
 
@@ -16,11 +21,7 @@ func WriteColor(out io.Writer, pixelColor rtmath.Color, samplesPerPixel int) {
 	g := intensity.Clamp(linearToGamma(pixelColor.Y * scale))
 	b := intensity.Clamp(linearToGamma(pixelColor.Z * scale))
 
-	rByte := int(255.999 * r)
-	gByte := int(255.999 * g)
-	bByte := int(255.999 * b)
-
-	fmt.Fprintf(out, "%d %d %d\n", rByte, gByte, bByte)
+	return byte(255.999 * r), byte(255.999 * g), byte(255.999 * b)
 }
 
 func linearToGamma(linearComponent float64) float64 {

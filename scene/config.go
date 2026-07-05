@@ -19,6 +19,8 @@ type Object struct {
 
 	Center rtmath.Point3
 	Radius float64
+	Min    rtmath.Point3
+	Max    rtmath.Point3
 
 	A rtmath.Point3
 	B rtmath.Point3
@@ -42,6 +44,10 @@ func Sphere(x, y, z, radius float64, material materials.Material) Object {
 		Radius:   radius,
 		Material: material,
 	}
+}
+
+func Box(min, max rtmath.Point3, material materials.Material) Object {
+	return Object{Kind: "box", Min: min, Max: max, Material: material}
 }
 
 func Triangle(a, b, c rtmath.Point3, material materials.Material) Object {

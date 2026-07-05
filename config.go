@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aayushkdev/rt-go/camera"
+	rtmath "github.com/aayushkdev/rt-go/math"
 	"github.com/aayushkdev/rt-go/scene"
 )
 
@@ -13,8 +14,11 @@ type AppConfig struct {
 }
 
 type RenderConfig struct {
-	SamplesPerPixel int
-	MaxDepth        int
+	SamplesPerPixel    int
+	MaxDepth           int
+	FlushEveryScanline int
+	Background         rtmath.Color
+	SkyBackground      bool
 }
 
 // DefaultConfig is the main place to edit the render.
@@ -31,22 +35,27 @@ func DefaultConfig() AppConfig {
 		// depth of field.
 		Camera: Camera().
 			Size(800).
-			FOV(28).
-			From(0, 1.15, 2.4).
-			LookAt(0, 0.45, -2.35).
-			Focus(4).
+			FOV(36).
+			From(0, 1.35, 3.0).
+			LookAt(0, 1.45, -2.15).
+			Focus(5.15).
 			Config(),
 
 		// Render quality settings.
 		// SamplesPerPixel reduces noise/aliasing. Higher is cleaner but slower.
 		// MaxDepth controls how many times rays can bounce.
+		// FlushEveryScanline controls how often image.ppm is synced while rendering.
 		Render: RenderConfig{
-			SamplesPerPixel: 100,
-			MaxDepth:        20,
+			SamplesPerPixel:    1000,
+			MaxDepth:           20,
+			FlushEveryScanline: 10,
+			Background:         Point(0, 0, 0),
+			SkyBackground:      false,
 		},
 
 		// Object formats:
 		// Sphere(x, y, z, radius, material)
+		// Box(Point(minX,minY,minZ), Point(maxX,maxY,maxZ), material)
 		// Triangle(Point(x1,y1,z1), Point(x2,y2,z2), Point(x3,y3,z3), material)
 		// Floor(x1, z1, x2, z2, y, material)
 		// WallX(x, y1, y2, z1, z2, material)
@@ -72,10 +81,17 @@ func DefaultConfig() AppConfig {
 			// Bright rectangle light on the ceiling.
 			CeilingLight(-0.65, -2.65, 0.65, -1.35, 2.98, 10, 10, 10),
 
-			// Objects inside the room.
-			Sphere(-0.75, 0.45, -2.15, 0.45, Matte(0.75, 0.75, 0.75)),
-			Sphere(0.55, 0.5, -2.55, 0.5, Metal(0.8, 0.8, 0.8, 0.05)),
-			Sphere(0.25, 0.35, -1.45, 0.35, Glass(1.5)),
+			// Boxes inside the room.
+			Box(
+				Point(-1.25, 0, -2.8),
+				Point(-0.35, 1.35, -1.9),
+				Matte(0.75, 0.75, 0.75),
+			),
+			Box(
+				Point(0.35, 0, -2.35),
+				Point(1.2, 0.8, -1.45),
+				Matte(0.75, 0.75, 0.75),
+			),
 		),
 	}
 }

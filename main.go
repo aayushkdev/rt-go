@@ -41,6 +41,9 @@ func main() {
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
 	renderer.MaxDepth = config.Render.MaxDepth
+	renderer.FlushEveryScanline = config.Render.FlushEveryScanline
+	renderer.Background = config.Render.Background
+	renderer.SkyBackground = config.Render.SkyBackground
 	if err := renderer.Render(cam, world, config.OutputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
 		os.Exit(1)
@@ -53,6 +56,8 @@ func runViewer() {
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = 1
 	renderer.MaxDepth = 6
+	renderer.Background = config.Render.Background
+	renderer.SkyBackground = config.Render.SkyBackground
 
 	http.HandleFunc("/", serveViewer)
 	http.HandleFunc("/render", func(w http.ResponseWriter, r *http.Request) {

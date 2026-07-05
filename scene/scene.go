@@ -22,6 +22,8 @@ func buildObject(object Object) geometry.Hittable {
 		return loadModel(object)
 	case "sphere":
 		return geometry.NewSphere(object.Center, object.Radius, object.Material)
+	case "box":
+		return geometry.NewBox(object.Min, object.Max, object.Material)
 	case "triangle":
 		return geometry.NewTriangle(object.A, object.B, object.C, object.Material)
 	case "quad":

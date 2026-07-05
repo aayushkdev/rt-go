@@ -76,6 +76,11 @@ func Sphere(x, y, z, radius float64, material materials.Material) scene.Object {
 	return scene.Sphere(x, y, z, radius, material)
 }
 
+// Box creates an axis-aligned rectangular box from min and max corners.
+func Box(min, max rtmath.Point3, material materials.Material) scene.Object {
+	return scene.Box(min, max, material)
+}
+
 // Triangle creates a single triangle from three points and one material.
 func Triangle(a, b, c rtmath.Point3, material materials.Material) scene.Object {
 	return scene.Triangle(a, b, c, material)
