@@ -44,7 +44,7 @@ Materials and lights:
 Transforms:
 
 - Translation
-- Y-axis rotation
+- Rotation
 
 Performance:
 
@@ -81,6 +81,8 @@ image.ppm
 
 Edit a JSON scene file to change the camera, render quality, objects,
 materials, and lights.
+
+See [sceneGuide.md](sceneGuide.md) for a guide on how to design a scene.
 
 For the browser viewer:
 
