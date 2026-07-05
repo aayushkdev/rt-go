@@ -7,6 +7,7 @@ import (
 )
 
 type Metal struct {
+	BaseMaterial
 	Albedo rtmath.Color
 	Fuzz   float64
 }

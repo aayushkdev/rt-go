@@ -24,6 +24,8 @@ func buildObject(object Object) geometry.Hittable {
 		return geometry.NewSphere(object.Center, object.Radius, object.Material)
 	case "triangle":
 		return geometry.NewTriangle(object.A, object.B, object.C, object.Material)
+	case "quad":
+		return geometry.NewQuad(object.A, object.U, object.V, object.Material)
 	default:
 		return geometry.EmptyHittable{}
 	}

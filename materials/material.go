@@ -10,5 +10,12 @@ type HitInfo struct {
 }
 
 type Material interface {
+	Emitted(hit HitInfo) rtmath.Color
 	Scatter(rayIn rtmath.Ray, hit HitInfo) (rtmath.Color, rtmath.Ray, bool)
+}
+
+type BaseMaterial struct{}
+
+func (b BaseMaterial) Emitted(hit HitInfo) rtmath.Color {
+	return rtmath.NewVec3(0, 0, 0)
 }

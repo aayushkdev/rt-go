@@ -7,6 +7,7 @@ import (
 )
 
 type Dielectric struct {
+	BaseMaterial
 	RefractionIndex float64
 }
 

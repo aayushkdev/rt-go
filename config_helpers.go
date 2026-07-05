@@ -81,6 +81,46 @@ func Triangle(a, b, c rtmath.Point3, material materials.Material) scene.Object {
 	return scene.Triangle(a, b, c, material)
 }
 
+// Quad creates a rectangle/parallelogram from corner q and edge vectors u/v.
+func Quad(q, u, v rtmath.Vec3, material materials.Material) scene.Object {
+	return scene.Quad(q, u, v, material)
+}
+
+// Floor creates a horizontal X/Z quad at height y.
+func Floor(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
+	return Quad(
+		Point(x1, y, z1),
+		Point(x2-x1, 0, 0),
+		Point(0, 0, z2-z1),
+		material,
+	)
+}
+
+// WallX creates a vertical wall at constant x.
+func WallX(x, y1, y2, z1, z2 float64, material materials.Material) scene.Object {
+	return Quad(
+		Point(x, y1, z1),
+		Point(0, 0, z2-z1),
+		Point(0, y2-y1, 0),
+		material,
+	)
+}
+
+// WallZ creates a vertical wall at constant z.
+func WallZ(z, x1, x2, y1, y2 float64, material materials.Material) scene.Object {
+	return Quad(
+		Point(x1, y1, z),
+		Point(x2-x1, 0, 0),
+		Point(0, y2-y1, 0),
+		material,
+	)
+}
+
+// CeilingLight creates a horizontal emissive quad near the ceiling.
+func CeilingLight(x1, z1, x2, z2, y float64, r, g, b float64) scene.Object {
+	return Floor(x1, z1, x2, z2, y, Light(r, g, b))
+}
+
 // Point is a short helper for 3D positions.
 func Point(x, y, z float64) rtmath.Point3 {
 	return rtmath.NewVec3(x, y, z)
@@ -99,4 +139,9 @@ func Metal(r, g, b, fuzz float64) materials.Material {
 // Glass creates a transparent/refractive material.
 func Glass(refractionIndex float64) materials.Material {
 	return materials.NewDielectric(refractionIndex)
+}
+
+// Light creates an emissive material.
+func Light(r, g, b float64) materials.Material {
+	return materials.NewDiffuseLight(rtmath.NewVec3(r, g, b))
 }

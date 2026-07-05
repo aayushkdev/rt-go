@@ -3,6 +3,7 @@ package materials
 import rtmath "github.com/aayushkdev/rt-go/math"
 
 type Lambertian struct {
+	BaseMaterial
 	Albedo rtmath.Color
 }
 

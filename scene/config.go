@@ -23,6 +23,8 @@ type Object struct {
 	A rtmath.Point3
 	B rtmath.Point3
 	C rtmath.Point3
+	U rtmath.Vec3
+	V rtmath.Vec3
 }
 
 func New(objects ...Object) Config {
@@ -44,6 +46,10 @@ func Sphere(x, y, z, radius float64, material materials.Material) Object {
 
 func Triangle(a, b, c rtmath.Point3, material materials.Material) Object {
 	return Object{Kind: "triangle", A: a, B: b, C: c, Material: material}
+}
+
+func Quad(q, u, v rtmath.Vec3, material materials.Material) Object {
+	return Object{Kind: "quad", A: q, U: u, V: v, Material: material}
 }
 
 func (o Object) At(x, y, z float64) Object {
