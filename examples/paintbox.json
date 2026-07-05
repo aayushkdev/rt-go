@@ -1,7 +1,7 @@
 {
   "output": "image.ppm",
   "camera": {
-    "size": 600,
+    "size": 1000,
     "aspect": 1.5,
     "fov": 44,
     "from": [0, 1.3, 4.1],
@@ -9,7 +9,7 @@
     "focus": 4.8
   },
   "render": {
-    "samples": 100,
+    "samples": 500,
     "max_depth": 18,
     "workers": 0,
     "flush_every_scanline": 10,
@@ -37,7 +37,7 @@
     },
     {
       "type": "sphere",
-      "center": [-1.05, 0.45, -1.35],
+      "center": [-1.05, 0.45, -1],
       "radius": 0.45,
       "material": {
         "type": "matte",
@@ -46,7 +46,7 @@
     },
     {
       "type": "sphere",
-      "center": [0, 0.58, -1.65],
+      "center": [0, 0.58, -1],
       "radius": 0.58,
       "material": {
         "type": "matte",
@@ -55,7 +55,7 @@
     },
     {
       "type": "sphere",
-      "center": [1.12, 0.45, -1.35],
+      "center": [1.12, 0.45, -1],
       "radius": 0.45,
       "material": {
         "type": "matte",

@@ -36,6 +36,7 @@ Materials and lights:
 
 - Lambertian matte materials
 - Texture support: solid, checker, image
+- sRGB image texture loading with bilinear filtering
 - Metal materials
 - Dielectric glass materials
 - Diffuse light materials
