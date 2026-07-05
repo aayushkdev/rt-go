@@ -22,6 +22,21 @@ type ScatterRecord struct {
 	SkipPDF     bool
 }
 
+func NewPDFScatter(attenuation rtmath.Color, pdf rtmath.PDF) ScatterRecord {
+	return ScatterRecord{
+		Attenuation: attenuation,
+		PDF:         pdf,
+	}
+}
+
+func NewSpecularScatter(attenuation rtmath.Color, scattered rtmath.Ray) ScatterRecord {
+	return ScatterRecord{
+		Attenuation: attenuation,
+		Scattered:   scattered,
+		SkipPDF:     true,
+	}
+}
+
 type BaseMaterial struct{}
 
 func (b BaseMaterial) Emitted(hit HitInfo) rtmath.Color {

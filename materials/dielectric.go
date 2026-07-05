@@ -32,11 +32,7 @@ func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random
 		direction = rtmath.Reflect(unitDirection, hit.Normal)
 	}
 
-	return ScatterRecord{
-		Attenuation: attenuation,
-		Scattered:   rtmath.NewRay(hit.Point, direction),
-		SkipPDF:     true,
-	}, true
+	return NewSpecularScatter(attenuation, rtmath.NewRay(hit.Point, direction)), true
 }
 
 func reflectance(cosine, refractionIndex float64) float64 {

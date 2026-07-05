@@ -24,9 +24,5 @@ func (m Metal) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (Sc
 	reflected = reflected.Add(random.UnitVector().Mul(m.Fuzz))
 	scattered := rtmath.NewRay(hit.Point, reflected)
 
-	return ScatterRecord{
-		Attenuation: m.Albedo,
-		Scattered:   scattered,
-		SkipPDF:     true,
-	}, rtmath.Dot(scattered.Direction, hit.Normal) > 0
+	return NewSpecularScatter(m.Albedo, scattered), rtmath.Dot(scattered.Direction, hit.Normal) > 0
 }

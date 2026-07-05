@@ -12,10 +12,7 @@ func NewLambertian(albedo rtmath.Color) Lambertian {
 }
 
 func (l Lambertian) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
-	return ScatterRecord{
-		Attenuation: l.Albedo,
-		PDF:         rtmath.NewCosinePDF(hit.Normal),
-	}, true
+	return NewPDFScatter(l.Albedo, rtmath.NewCosinePDF(hit.Normal)), true
 }
 
 func (l Lambertian) ScatteringPDF(rayIn rtmath.Ray, hit HitInfo, scattered rtmath.Ray) float64 {
