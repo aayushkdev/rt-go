@@ -81,6 +81,46 @@ func (t Triangle) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 	return record, true
 }
 
+func (t Triangle) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	record, hit := t.Hit(rtmath.NewRay(origin, direction), rtmath.NewInterval(0.001, stdmath.Inf(1)))
+	if !hit {
+		return 0
+	}
+
+	area := t.area()
+	if area == 0 {
+		return 0
+	}
+
+	normal := rtmath.UnitVector(rtmath.Cross(t.B.Sub(t.A), t.C.Sub(t.A)))
+	distanceSquared := record.T * record.T * direction.LengthSquared()
+	cosine := stdmath.Abs(rtmath.Dot(direction, normal) / direction.Length())
+	if cosine == 0 {
+		return 0
+	}
+
+	return distanceSquared / (cosine * area)
+}
+
+func (t Triangle) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	r1 := random.Float64()
+	r2 := random.Float64()
+	if r1+r2 > 1 {
+		r1 = 1 - r1
+		r2 = 1 - r2
+	}
+
+	point := t.A.
+		Add(t.B.Sub(t.A).Mul(r1)).
+		Add(t.C.Sub(t.A).Mul(r2))
+
+	return point.Sub(origin)
+}
+
+func (t Triangle) area() float64 {
+	return rtmath.Cross(t.B.Sub(t.A), t.C.Sub(t.A)).Length() / 2
+}
+
 func (t Triangle) normalAt(u, v float64, edgeAB, edgeAC rtmath.Vec3) rtmath.Vec3 {
 	if !t.Smooth {
 		return rtmath.UnitVector(rtmath.Cross(edgeAB, edgeAC))
