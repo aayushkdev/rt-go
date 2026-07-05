@@ -41,20 +41,32 @@ func (p CosinePDF) Generate(random *Random) Vec3 {
 }
 
 type MixturePDF struct {
-	A PDF
-	B PDF
+	A       PDF
+	B       PDF
+	WeightA float64
 }
 
 func NewMixturePDF(a, b PDF) MixturePDF {
-	return MixturePDF{A: a, B: b}
+	return NewWeightedMixturePDF(a, b, 0.5)
+}
+
+func NewWeightedMixturePDF(a, b PDF, weightA float64) MixturePDF {
+	if weightA < 0 {
+		weightA = 0
+	}
+	if weightA > 1 {
+		weightA = 1
+	}
+
+	return MixturePDF{A: a, B: b, WeightA: weightA}
 }
 
 func (p MixturePDF) Value(direction Vec3) float64 {
-	return 0.5*p.A.Value(direction) + 0.5*p.B.Value(direction)
+	return p.WeightA*p.A.Value(direction) + (1-p.WeightA)*p.B.Value(direction)
 }
 
 func (p MixturePDF) Generate(random *Random) Vec3 {
-	if random.Float64() < 0.5 {
+	if random.Float64() < p.WeightA {
 		return p.A.Generate(random)
 	}
 

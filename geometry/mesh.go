@@ -131,6 +131,50 @@ func (m Mesh) BoundingBox() AABB {
 	return box
 }
 
+func (m Mesh) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 {
+	totalArea := m.totalArea()
+	if totalArea == 0 {
+		return 0
+	}
+
+	sum := 0.0
+	for _, triangle := range m.Triangles {
+		area := triangle.Area()
+		if area > 0 {
+			sum += (area / totalArea) * triangle.PDFValue(origin, direction)
+		}
+	}
+
+	return sum
+}
+
+func (m Mesh) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec3 {
+	totalArea := m.totalArea()
+	if totalArea == 0 {
+		return rtmath.NewVec3(1, 0, 0)
+	}
+
+	target := random.Float64() * totalArea
+	running := 0.0
+	for _, triangle := range m.Triangles {
+		running += triangle.Area()
+		if target <= running {
+			return triangle.Random(origin, random)
+		}
+	}
+
+	return m.Triangles[len(m.Triangles)-1].Random(origin, random)
+}
+
+func (m Mesh) totalArea() float64 {
+	total := 0.0
+	for _, triangle := range m.Triangles {
+		total += triangle.Area()
+	}
+
+	return total
+}
+
 func includePoint(min, max, point rtmath.Point3) (rtmath.Point3, rtmath.Point3) {
 	return rtmath.NewVec3(
 			stdmath.Min(min.X, point.X),

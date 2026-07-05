@@ -14,12 +14,13 @@ type AppConfig struct {
 }
 
 type RenderConfig struct {
-	SamplesPerPixel    int
-	MaxDepth           int
-	Workers            int
-	FlushEveryScanline int
-	Background         rtmath.Color
-	SkyBackground      bool
+	SamplesPerPixel      int
+	MaxDepth             int
+	Workers              int
+	FlushEveryScanline   int
+	Background           rtmath.Color
+	SkyBackground        bool
+	SamplingTargetWeight float64
 }
 
 // DefaultConfig is the main place to edit the render.
@@ -48,13 +49,16 @@ func DefaultConfig() AppConfig {
 		// MaxDepth controls how many times rays can bounce.
 		// Workers controls CPU goroutines. Use 0 to use all CPU cores.
 		// FlushEveryScanline controls how often image.ppm is synced while rendering.
+		// SamplingTargetWeight is the chance to sample lights/important objects
+		// instead of the material PDF. Higher usually reduces small-light grain.
 		Render: RenderConfig{
-			SamplesPerPixel:    10,
-			MaxDepth:           20,
-			Workers:            0,
-			FlushEveryScanline: 10,
-			Background:         Point(0, 0, 0),
-			SkyBackground:      false,
+			SamplesPerPixel:      10,
+			MaxDepth:             20,
+			Workers:              0,
+			FlushEveryScanline:   10,
+			Background:           Point(0, 0, 0),
+			SkyBackground:        false,
+			SamplingTargetWeight: 0.8,
 		},
 
 		// Object formats:
@@ -67,6 +71,7 @@ func DefaultConfig() AppConfig {
 		// CeilingLight(x1, z1, x2, z2, y, r, g, b)
 		// Translate(object, x, y, z)
 		// RotateY(object, angleDegrees)
+		// AsSampleTarget(object) makes a non-light object important to sample.
 		// Model(path).WithHeight(height).At(x, y, z)
 		//
 		// Material formats:

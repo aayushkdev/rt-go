@@ -71,3 +71,15 @@ func TestMixturePDFValueAveragesInputs(t *testing.T) {
 		t.Fatalf("mixture pdf = %v, want 4", got)
 	}
 }
+
+func TestWeightedMixturePDFValueUsesWeight(t *testing.T) {
+	pdf := NewWeightedMixturePDF(
+		constantPDF{value: 2},
+		constantPDF{value: 6},
+		0.75,
+	)
+
+	if got := pdf.Value(NewVec3(1, 0, 0)); got != 3 {
+		t.Fatalf("weighted mixture pdf = %v, want 3", got)
+	}
+}

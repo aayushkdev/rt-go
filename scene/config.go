@@ -15,6 +15,7 @@ type Object struct {
 	Offset   rtmath.Vec3
 	RotateY  float64
 	Light    bool
+	Sample   bool
 
 	Path     string
 	Height   float64
@@ -73,6 +74,12 @@ func RotateY(object Object, angle float64) Object {
 
 func AsLight(object Object) Object {
 	object.Light = true
+	object.Sample = true
+	return object
+}
+
+func AsSampleTarget(object Object) Object {
+	object.Sample = true
 	return object
 }
 

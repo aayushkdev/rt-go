@@ -37,7 +37,7 @@ func main() {
 
 	config := DefaultConfig()
 	world := scene.BuildWorld(config.Scene)
-	lights := scene.BuildLights(config.Scene)
+	samplingTargets := scene.BuildSampleTargets(config.Scene)
 	cam := camera.New(config.Camera)
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = config.Render.SamplesPerPixel
@@ -46,8 +46,9 @@ func main() {
 	renderer.FlushEveryScanline = config.Render.FlushEveryScanline
 	renderer.Background = config.Render.Background
 	renderer.SkyBackground = config.Render.SkyBackground
-	if len(lights.Objects) > 0 {
-		renderer.Lights = lights
+	renderer.SamplingTargetWeight = config.Render.SamplingTargetWeight
+	if len(samplingTargets.Objects) > 0 {
+		renderer.SamplingTargets = samplingTargets
 	}
 	if err := renderer.Render(cam, world, config.OutputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "render failed: %v\n", err)
@@ -58,14 +59,15 @@ func main() {
 func runViewer() {
 	config := DefaultConfig()
 	world := scene.BuildWorld(config.Scene)
-	lights := scene.BuildLights(config.Scene)
+	samplingTargets := scene.BuildSampleTargets(config.Scene)
 	renderer := render.NewRenderer()
 	renderer.SamplesPerPixel = 1
 	renderer.MaxDepth = 6
 	renderer.Background = config.Render.Background
 	renderer.SkyBackground = config.Render.SkyBackground
-	if len(lights.Objects) > 0 {
-		renderer.Lights = lights
+	renderer.SamplingTargetWeight = config.Render.SamplingTargetWeight
+	if len(samplingTargets.Objects) > 0 {
+		renderer.SamplingTargets = samplingTargets
 	}
 
 	http.HandleFunc("/", serveViewer)

@@ -111,6 +111,11 @@ func AsLight(object scene.Object) scene.Object {
 	return scene.AsLight(object)
 }
 
+// AsSampleTarget marks a non-emissive object as important for PDF sampling.
+func AsSampleTarget(object scene.Object) scene.Object {
+	return scene.AsSampleTarget(object)
+}
+
 // Floor creates a horizontal X/Z quad at height y.
 func Floor(x1, z1, x2, z2, y float64, material materials.Material) scene.Object {
 	return Quad(

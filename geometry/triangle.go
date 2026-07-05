@@ -87,7 +87,7 @@ func (t Triangle) PDFValue(origin rtmath.Point3, direction rtmath.Vec3) float64 
 		return 0
 	}
 
-	area := t.area()
+	area := t.Area()
 	if area == 0 {
 		return 0
 	}
@@ -117,7 +117,7 @@ func (t Triangle) Random(origin rtmath.Point3, random *rtmath.Random) rtmath.Vec
 	return point.Sub(origin)
 }
 
-func (t Triangle) area() float64 {
+func (t Triangle) Area() float64 {
 	return rtmath.Cross(t.B.Sub(t.A), t.C.Sub(t.A)).Length() / 2
 }
 

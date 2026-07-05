@@ -15,22 +15,24 @@ import (
 )
 
 type Renderer struct {
-	SamplesPerPixel    int
-	MaxDepth           int
-	Workers            int
-	FlushEveryScanline int
-	Background         rtmath.Color
-	SkyBackground      bool
-	Lights             geometry.Sampler
+	SamplesPerPixel      int
+	MaxDepth             int
+	Workers              int
+	FlushEveryScanline   int
+	Background           rtmath.Color
+	SkyBackground        bool
+	SamplingTargets      geometry.Sampler
+	SamplingTargetWeight float64
 }
 
 func NewRenderer() Renderer {
 	return Renderer{
-		SamplesPerPixel:    10,
-		MaxDepth:           50,
-		Workers:            runtime.NumCPU(),
-		FlushEveryScanline: 10,
-		SkyBackground:      true,
+		SamplesPerPixel:      10,
+		MaxDepth:             50,
+		Workers:              runtime.NumCPU(),
+		FlushEveryScanline:   10,
+		SkyBackground:        true,
+		SamplingTargetWeight: 0.5,
 	}
 }
 
@@ -254,8 +256,12 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 		}
 
 		pdf := scatter.PDF
-		if r.Lights != nil {
-			pdf = rtmath.NewMixturePDF(geometry.NewHittablePDF(r.Lights, record.Point), scatter.PDF)
+		if r.SamplingTargets != nil {
+			pdf = rtmath.NewWeightedMixturePDF(
+				geometry.NewHittablePDF(r.SamplingTargets, record.Point),
+				scatter.PDF,
+				r.SamplingTargetWeight,
+			)
 		}
 
 		scattered := rtmath.NewRay(record.Point, pdf.Generate(random))

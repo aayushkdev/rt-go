@@ -27,6 +27,17 @@ func BuildLights(config Config) geometry.World {
 	return lights
 }
 
+func BuildSampleTargets(config Config) geometry.World {
+	targets := geometry.NewWorld()
+	for _, object := range config.Objects {
+		if object.Sample {
+			targets.Add(buildObject(object))
+		}
+	}
+
+	return targets
+}
+
 func buildObject(object Object) geometry.Hittable {
 	var hittable geometry.Hittable
 
