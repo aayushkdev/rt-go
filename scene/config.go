@@ -13,7 +13,9 @@ type Object struct {
 	Kind     string
 	Material materials.Material
 	Offset   rtmath.Vec3
+	RotateX  float64
 	RotateY  float64
+	RotateZ  float64
 	Light    bool
 	Sample   bool
 
@@ -64,11 +66,6 @@ func Quad(q, u, v rtmath.Vec3, material materials.Material) Object {
 
 func Translate(object Object, x, y, z float64) Object {
 	object.Offset = object.Offset.Add(rtmath.NewVec3(x, y, z))
-	return object
-}
-
-func RotateY(object Object, angle float64) Object {
-	object.RotateY += angle
 	return object
 }
 

@@ -50,7 +50,9 @@ type fileObject struct {
 	Material fileMaterial `json:"material"`
 	Light    bool         `json:"light"`
 	Sample   *bool        `json:"sample"`
+	RotateX  float64      `json:"rotate_x"`
 	RotateY  float64      `json:"rotate_y"`
+	RotateZ  float64      `json:"rotate_z"`
 	Move     []float64    `json:"move"`
 
 	Path     string    `json:"path"`
@@ -280,9 +282,10 @@ func objectFromJSON(object fileObject) (scene.Object, error) {
 		return built, fmt.Errorf("unknown object type %q", object.Type)
 	}
 
-	if object.RotateY != 0 {
-		built = scene.RotateY(built, object.RotateY)
-	}
+	built.RotateX = object.RotateX
+	built.RotateY = object.RotateY
+	built.RotateZ = object.RotateZ
+
 	if len(object.Move) > 0 {
 		move, err := requiredVec(object.Move, "move")
 		if err != nil {
