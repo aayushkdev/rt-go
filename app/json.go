@@ -42,6 +42,7 @@ type fileMaterial struct {
 	Type       string      `json:"type"`
 	Color      []float64   `json:"color"`
 	Texture    fileTexture `json:"texture"`
+	Tint       fileTexture `json:"tint"`
 	Fuzz       float64     `json:"fuzz"`
 	Refraction float64     `json:"refraction"`
 }
@@ -330,16 +331,24 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 		}
 		return materials.NewTexturedLambertian(texture), "matte", nil
 	case "metal":
-		color, err := requiredVec(material.Color, "color")
+		texture, err := textureFromJSON(material.Texture, material.Color)
 		if err != nil {
 			return nil, "", err
 		}
-		return materials.NewMetal(color, material.Fuzz), "metal", nil
+		return materials.NewTexturedMetal(texture, material.Fuzz), "metal", nil
 	case "glass":
 		if material.Refraction <= 0 {
 			return nil, "", fmt.Errorf("refraction must be greater than zero")
 		}
-		return materials.NewDielectric(material.Refraction), "glass", nil
+		tint := materials.Texture(materials.NewSolidColor(rtmath.NewVec3(1, 1, 1)))
+		if textureConfigured(material.Tint) {
+			var err error
+			tint, err = textureFromJSON(material.Tint, material.Tint.Color)
+			if err != nil {
+				return nil, "", fmt.Errorf("tint: %w", err)
+			}
+		}
+		return materials.NewTintedDielectric(material.Refraction, tint), "glass", nil
 	case "light":
 		color, err := requiredVec(material.Color, "color")
 		if err != nil {
@@ -349,6 +358,18 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 	default:
 		return nil, "", fmt.Errorf("unknown material type %q", material.Type)
 	}
+}
+
+func textureConfigured(texture fileTexture) bool {
+	return texture.Type != "" ||
+		len(texture.Color) > 0 ||
+		texture.Path != "" ||
+		texture.Scale != 0 ||
+		len(texture.UVScale) > 0 ||
+		len(texture.UVOffset) > 0 ||
+		texture.UVRotate != 0 ||
+		texture.Even != nil ||
+		texture.Odd != nil
 }
 
 func textureFromJSON(texture fileTexture, fallbackColor []float64) (materials.Texture, error) {

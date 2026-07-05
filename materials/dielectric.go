@@ -9,14 +9,22 @@ import (
 type Dielectric struct {
 	BaseMaterial
 	RefractionIndex float64
+	Tint            Texture
 }
 
 func NewDielectric(refractionIndex float64) Dielectric {
-	return Dielectric{RefractionIndex: refractionIndex}
+	return NewTintedDielectric(refractionIndex, NewSolidColor(rtmath.NewVec3(1, 1, 1)))
+}
+
+func NewTintedDielectric(refractionIndex float64, tint Texture) Dielectric {
+	return Dielectric{
+		RefractionIndex: refractionIndex,
+		Tint:            tint,
+	}
 }
 
 func (d Dielectric) Scatter(rayIn rtmath.Ray, hit HitInfo, random *rtmath.Random) (ScatterRecord, bool) {
-	attenuation := rtmath.NewVec3(1, 1, 1)
+	attenuation := d.Tint.Value(hit.U, hit.V, hit.Point)
 	refractionRatio := d.RefractionIndex
 	if hit.FrontFace {
 		refractionRatio = 1.0 / d.RefractionIndex

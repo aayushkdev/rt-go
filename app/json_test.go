@@ -194,6 +194,61 @@ func TestParseJSONConfigSupportsSolidTexture(t *testing.T) {
 	}
 }
 
+func TestMaterialFromJSONSupportsTexturedMetal(t *testing.T) {
+	material, materialType, err := materialFromJSON(fileMaterial{
+		Type: "metal",
+		Texture: fileTexture{
+			Type:  "solid",
+			Color: []float64{0.8, 0.7, 0.6},
+		},
+		Fuzz: 0.15,
+	})
+	if err != nil {
+		t.Fatalf("build material: %v", err)
+	}
+	if materialType != "metal" {
+		t.Fatalf("materialType = %q, want metal", materialType)
+	}
+
+	metal, ok := material.(materials.Metal)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Metal", material)
+	}
+	color := metal.Albedo.Value(0, 0, rtmath.Point3{})
+	if color != rtmath.NewVec3(0.8, 0.7, 0.6) {
+		t.Fatalf("metal albedo = %#v", color)
+	}
+	if metal.Fuzz != 0.15 {
+		t.Fatalf("metal fuzz = %v, want 0.15", metal.Fuzz)
+	}
+}
+
+func TestMaterialFromJSONSupportsTintedGlass(t *testing.T) {
+	material, materialType, err := materialFromJSON(fileMaterial{
+		Type:       "glass",
+		Refraction: 1.5,
+		Tint: fileTexture{
+			Type:  "solid",
+			Color: []float64{0.7, 0.9, 1},
+		},
+	})
+	if err != nil {
+		t.Fatalf("build material: %v", err)
+	}
+	if materialType != "glass" {
+		t.Fatalf("materialType = %q, want glass", materialType)
+	}
+
+	glass, ok := material.(materials.Dielectric)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Dielectric", material)
+	}
+	tint := glass.Tint.Value(0, 0, rtmath.Point3{})
+	if tint != rtmath.NewVec3(0.7, 0.9, 1) {
+		t.Fatalf("glass tint = %#v", tint)
+	}
+}
+
 func TestTextureFromJSONSupportsChecker(t *testing.T) {
 	texture, err := textureFromJSON(fileTexture{
 		Type:  "checker",

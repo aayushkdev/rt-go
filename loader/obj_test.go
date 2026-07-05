@@ -251,11 +251,61 @@ illum 2
 	if !ok {
 		t.Fatalf("material = %T, want materials.Metal", mesh.Triangles[0].Material)
 	}
-	if material.Albedo != rtmath.NewVec3(0.6, 0.5, 0.1) {
-		t.Fatalf("material.Albedo = %#v", material.Albedo)
+	albedo := material.Albedo.Value(0, 0, rtmath.Point3{})
+	if albedo != rtmath.NewVec3(0.6, 0.5, 0.1) {
+		t.Fatalf("material albedo = %#v", albedo)
 	}
 	if material.Fuzz != 0.5 {
 		t.Fatalf("material.Fuzz = %v, want 0.5", material.Fuzz)
+	}
+}
+
+func TestLoadOBJWithMaterialsUsesDiffuseTextureMapForMetal(t *testing.T) {
+	dir := t.TempDir()
+	objPath := filepath.Join(dir, "model.obj")
+	mtlPath := filepath.Join(dir, "model.mtl")
+	texturePath := filepath.Join(dir, "metal.png")
+
+	if err := writeTestPNG(texturePath, color.RGBA{R: 190, G: 190, B: 210, A: 255}); err != nil {
+		t.Fatal(err)
+	}
+	err := os.WriteFile(objPath, []byte(`
+mtllib model.mtl
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vt 0 0
+vt 1 0
+vt 0 1
+usemtl mapped_metal
+f 1/1 2/2 3/3
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile(mtlPath, []byte(`
+newmtl mapped_metal
+Kd 0.5 0.5 0.5
+Ks 0.7 0.7 0.7
+Ns 50
+illum 2
+map_Kd metal.png
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mesh, err := LoadOBJWithMaterials(objPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	material, ok := mesh.Triangles[0].Material.(materials.Metal)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Metal", mesh.Triangles[0].Material)
+	}
+	if _, ok := material.Albedo.(materials.ImageTexture); !ok {
+		t.Fatalf("material.Albedo = %T, want materials.ImageTexture", material.Albedo)
 	}
 }
 
@@ -311,6 +361,10 @@ illum 4
 	if material.RefractionIndex != 1.45 {
 		t.Fatalf("material.RefractionIndex = %v, want 1.45", material.RefractionIndex)
 	}
+	tint := material.Tint.Value(0, 0, rtmath.Point3{})
+	if tint != rtmath.NewVec3(0.9, 0.9, 1.0) {
+		t.Fatalf("material tint = %#v", tint)
+	}
 }
 
 func TestLoadOBJWithMaterialsFallsBackToRedWhenMTLMissing(t *testing.T) {
@@ -336,8 +390,9 @@ f 1 2 3
 	if !ok {
 		t.Fatalf("material = %T, want materials.Metal", mesh.Triangles[0].Material)
 	}
-	if material.Albedo != rtmath.NewVec3(0.8, 0.8, 0.8) {
-		t.Fatalf("material.Albedo = %#v", material.Albedo)
+	albedo := material.Albedo.Value(0, 0, rtmath.Point3{})
+	if albedo != rtmath.NewVec3(0.8, 0.8, 0.8) {
+		t.Fatalf("material albedo = %#v", albedo)
 	}
 	if material.Fuzz != 0 {
 		t.Fatalf("material.Fuzz = %v, want 0", material.Fuzz)

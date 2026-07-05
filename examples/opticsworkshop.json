@@ -1,0 +1,159 @@
+{
+  "output": "image.ppm",
+  "camera": {
+    "size": 600,
+    "aspect": 1.3333333333,
+    "fov": 34,
+    "from": [0, 1.45, 4.4],
+    "look_at": [0, 0.9, -1.6],
+    "focus": 5.7,
+    "defocus": 0
+  },
+  "render": {
+    "samples": 160,
+    "max_depth": 22,
+    "workers": 0,
+    "flush_every_scanline": 10,
+    "background": [0, 0, 0],
+    "sky": false,
+    "sampling_target_weight": 0.55
+  },
+  "objects": [
+    {
+      "type": "floor",
+      "x1": -3.2,
+      "z1": -4.8,
+      "x2": 3.2,
+      "z2": 2.0,
+      "y": 0,
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.62, 0.62, 0.58] } }
+    },
+    {
+      "type": "floor",
+      "x1": -3.2,
+      "z1": -4.8,
+      "x2": 3.2,
+      "z2": 0.4,
+      "y": 2.7,
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.48, 0.50, 0.50] } }
+    },
+    {
+      "type": "wall_z",
+      "z": -4.8,
+      "x1": -3.2,
+      "x2": 3.2,
+      "y1": 0,
+      "y2": 2.7,
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.50, 0.52, 0.52] } }
+    },
+    {
+      "type": "wall_x",
+      "x": -3.2,
+      "y1": 0,
+      "y2": 2.7,
+      "z1": 0.4,
+      "z2": -4.8,
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.46, 0.50, 0.52] } }
+    },
+    {
+      "type": "wall_x",
+      "x": 3.2,
+      "y1": 0,
+      "y2": 2.7,
+      "z1": -4.8,
+      "z2": 0.4,
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.55, 0.52, 0.48] } }
+    },
+    {
+      "type": "ceiling_light",
+      "x1": -0.75,
+      "z1": -2.35,
+      "x2": 0.75,
+      "z2": -1.25,
+      "y": 2.68,
+      "color": [13, 13, 13]
+    },
+    {
+      "type": "quad",
+      "q": [-0.52, 0.56, -4.79],
+      "u": [0.28, 0, 0],
+      "v": [0, 0.92, 0],
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.80, 0.18, 0.12] } }
+    },
+    {
+      "type": "quad",
+      "q": [-0.12, 0.56, -4.79],
+      "u": [0.28, 0, 0],
+      "v": [0, 0.92, 0],
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.92, 0.68, 0.14] } }
+    },
+    {
+      "type": "quad",
+      "q": [0.28, 0.56, -4.79],
+      "u": [0.28, 0, 0],
+      "v": [0, 0.92, 0],
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.12, 0.38, 0.82] } }
+    },
+    {
+      "type": "box",
+      "min": [-1.15, 0, -0.42],
+      "max": [1.15, 0.25, 0.42],
+      "move": [0, 0, -1.58],
+      "material": { "type": "matte", "texture": { "type": "solid", "color": [0.58, 0.56, 0.50] } }
+    },
+    {
+      "type": "sphere",
+      "center": [-0.45, 0.68, -1.65],
+      "radius": 0.42,
+      "material": {
+        "type": "glass",
+        "refraction": 1.5,
+        "tint": { "type": "solid", "color": [0.82, 0.94, 1.0] }
+      }
+    },
+    {
+      "type": "sphere",
+      "center": [0.48, 0.63, -1.62],
+      "radius": 0.37,
+      "material": {
+        "type": "glass",
+        "refraction": 1.52,
+        "tint": {
+          "type": "checker",
+          "scale": 9,
+          "even": { "type": "solid", "color": [1.0, 0.78, 0.62] },
+          "odd": { "type": "solid", "color": [0.64, 0.86, 1.0] }
+        }
+      }
+    },
+    {
+      "type": "sphere",
+      "center": [-1.55, 0.35, -1.18],
+      "radius": 0.35,
+      "material": {
+        "type": "metal",
+        "texture": {
+          "type": "checker",
+          "scale": 12,
+          "even": { "type": "solid", "color": [0.92, 0.88, 0.76] },
+          "odd": { "type": "solid", "color": [0.52, 0.52, 0.56] }
+        },
+        "fuzz": 0.04
+      }
+    },
+    {
+      "type": "sphere",
+      "center": [1.55, 0.35, -1.18],
+      "radius": 0.35,
+      "material": {
+        "type": "metal",
+        "texture": {
+          "type": "noise",
+          "scale": 7,
+          "color": [0.88, 0.82, 0.68]
+        },
+        "fuzz": 0.38
+      }
+    }
+  ]
+}

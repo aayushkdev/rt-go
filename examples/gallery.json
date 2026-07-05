@@ -105,13 +105,21 @@
       "type": "sphere",
       "center": [0, 0.82, -1.6],
       "radius": 0.48,
-      "material": { "type": "glass", "refraction": 1.5 }
+      "material": {
+        "type": "glass",
+        "refraction": 1.5,
+        "tint": { "type": "solid", "color": [0.94, 0.98, 1.0] }
+      }
     },
     {
       "type": "sphere",
       "center": [-1.18, 0.38, -1.55],
       "radius": 0.38,
-      "material": { "type": "metal", "color": [0.88, 0.86, 0.80], "fuzz": 0.05 }
+      "material": {
+        "type": "metal",
+        "texture": { "type": "solid", "color": [0.88, 0.86, 0.80] },
+        "fuzz": 0.05
+      }
     },
     {
       "type": "sphere",
@@ -141,7 +149,11 @@
       "type": "sphere",
       "center": [1.34, 0.15, -0.96],
       "radius": 0.15,
-      "material": { "type": "metal", "color": [0.75, 0.80, 0.92], "fuzz": 0.35 }
+      "material": {
+        "type": "metal",
+        "texture": { "type": "solid", "color": [0.75, 0.80, 0.92] },
+        "fuzz": 0.35
+      }
     }
   ]
 }

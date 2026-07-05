@@ -171,23 +171,40 @@ Noise is procedural, so it does not need an image file.
 ```json
 "material": {
   "type": "metal",
-  "color": [0.8, 0.8, 0.75],
+  "texture": { "type": "solid", "color": [0.8, 0.8, 0.75] },
   "fuzz": 0.05
 }
 ```
 
-`fuzz` controls reflection blur. `0` is mirror-like.
+`texture` controls the metal albedo. A simple `"color": [...]` still works as
+short form for a solid texture. `fuzz` controls reflection blur. `0` is
+mirror-like.
+
+Textured metal:
+
+```json
+"material": {
+  "type": "metal",
+  "texture": {
+    "type": "image",
+    "path": "examples/brushed-metal.png"
+  },
+  "fuzz": 0.08
+}
+```
 
 ### 4.3 Glass
 
 ```json
 "material": {
   "type": "glass",
-  "refraction": 1.5
+  "refraction": 1.5,
+  "tint": { "type": "solid", "color": [0.9, 0.97, 1.0] }
 }
 ```
 
-`1.5` is a normal glass-like refraction value.
+`1.5` is a normal glass-like refraction value. `tint` is optional. If it is not
+set, the glass is clear white.
 
 ### 4.4 Light
 
@@ -201,10 +218,11 @@ Noise is procedural, so it does not need an image file.
 Field | Used by | Meaning
 --- | --- | ---
 `type` | all | `matte`, `metal`, `glass`, or `light`.
-`color` | matte, metal, light | Base color or emission color.
-`texture` | matte | Texture object. Supports `solid`, `checker`, `image`, and `noise`.
+`color` | matte, metal, light | Base color or emission color. For matte/metal this is short form for a solid texture.
+`texture` | matte, metal | Surface albedo texture. Supports `solid`, `checker`, `image`, and `noise`.
 `fuzz` | metal | Reflection roughness.
 `refraction` | glass | Refraction index.
+`tint` | glass | Optional color/texture filter for transmitted and reflected glass rays.
 
 ## 5. Common object fields
 
@@ -460,7 +478,7 @@ MTL field | How rt-go uses it
 `d value` | Alpha. Values below `0.95` become glass.
 `Tr value` | Transparency. Converted to alpha with `1 - Tr`.
 `illum value` | Helps classify glass and metal.
-`map_Kd path` | Diffuse image texture for matte materials.
+`map_Kd path` | Diffuse image texture. Maps to matte albedo, metal albedo, or glass tint.
 
 Mapping rules:
 

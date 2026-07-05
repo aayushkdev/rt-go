@@ -40,7 +40,9 @@ Materials and lights:
 - Texture UV scale, offset, and rotation
 - OBJ texture coordinates and MTL diffuse texture maps
 - Metal materials
+- Textured metal materials
 - Dielectric glass materials
+- Tinted glass materials
 - Diffuse light materials
 - One-sided emissive lights
 - Weighted sampling targets

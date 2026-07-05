@@ -133,22 +133,40 @@ func (m mtlMaterial) store(materialsByName map[string]materials.Material) {
 	}
 
 	if m.isGlass() {
+		if texture, ok := m.diffuseTexture(); ok {
+			materialsByName[m.name] = materials.NewTintedDielectric(m.refractionIndex, texture)
+			return
+		}
+		if m.hasDiffuse {
+			materialsByName[m.name] = materials.NewTintedDielectric(m.refractionIndex, materials.NewSolidColor(m.diffuse))
+			return
+		}
 		materialsByName[m.name] = materials.NewDielectric(m.refractionIndex)
 		return
 	}
 	if m.isMetal() {
+		if texture, ok := m.diffuseTexture(); ok {
+			materialsByName[m.name] = materials.NewTexturedMetal(texture, m.metalFuzz())
+			return
+		}
 		materialsByName[m.name] = materials.NewMetal(m.diffuse, m.metalFuzz())
 		return
 	}
-	if m.diffuseMapPath != "" {
-		texture, err := materials.NewImageTexture(m.diffuseMapPath)
-		if err == nil {
-			materialsByName[m.name] = materials.NewTexturedLambertian(texture)
-			return
-		}
+	if texture, ok := m.diffuseTexture(); ok {
+		materialsByName[m.name] = materials.NewTexturedLambertian(texture)
+		return
 	}
 
 	materialsByName[m.name] = materials.NewLambertian(m.diffuse)
+}
+
+func (m mtlMaterial) diffuseTexture() (materials.Texture, bool) {
+	if m.diffuseMapPath == "" {
+		return nil, false
+	}
+
+	texture, err := materials.NewImageTexture(m.diffuseMapPath)
+	return texture, err == nil
 }
 
 func (m mtlMaterial) isGlass() bool {
