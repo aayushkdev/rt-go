@@ -11,11 +11,28 @@ type Triangle struct {
 	A        rtmath.Point3
 	B        rtmath.Point3
 	C        rtmath.Point3
+	NormalA  rtmath.Vec3
+	NormalB  rtmath.Vec3
+	NormalC  rtmath.Vec3
+	Smooth   bool
 	Material materials.Material
 }
 
 func NewTriangle(a, b, c rtmath.Point3, material materials.Material) Triangle {
 	return Triangle{A: a, B: b, C: c, Material: material}
+}
+
+func NewSmoothTriangle(a, b, c rtmath.Point3, normalA, normalB, normalC rtmath.Vec3, material materials.Material) Triangle {
+	return Triangle{
+		A:        a,
+		B:        b,
+		C:        c,
+		NormalA:  rtmath.UnitVector(normalA),
+		NormalB:  rtmath.UnitVector(normalB),
+		NormalC:  rtmath.UnitVector(normalC),
+		Smooth:   true,
+		Material: material,
+	}
 }
 
 func (t Triangle) BoundingBox() AABB {
@@ -51,7 +68,7 @@ func (t Triangle) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 		return HitRecord{}, false
 	}
 
-	outwardNormal := rtmath.UnitVector(rtmath.Cross(edgeAB, edgeAC))
+	outwardNormal := t.normalAt(u, v, edgeAB, edgeAC)
 	record := HitRecord{
 		HitInfo: materials.HitInfo{
 			T:     hitT,
@@ -62,4 +79,20 @@ func (t Triangle) Hit(ray rtmath.Ray, rayT rtmath.Interval) (HitRecord, bool) {
 	record.SetFaceNormal(ray, outwardNormal)
 
 	return record, true
+}
+
+func (t Triangle) normalAt(u, v float64, edgeAB, edgeAC rtmath.Vec3) rtmath.Vec3 {
+	if !t.Smooth {
+		return rtmath.UnitVector(rtmath.Cross(edgeAB, edgeAC))
+	}
+
+	w := 1 - u - v
+	normal := t.NormalA.Mul(w).
+		Add(t.NormalB.Mul(u)).
+		Add(t.NormalC.Mul(v))
+	if normal.NearZero() {
+		return rtmath.UnitVector(rtmath.Cross(edgeAB, edgeAC))
+	}
+
+	return rtmath.UnitVector(normal)
 }

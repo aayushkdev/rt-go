@@ -54,6 +54,44 @@ f 1/1/1 2/2/2 3/3/3
 	}
 }
 
+func TestLoadOBJUsesVertexNormalsForSmoothTriangles(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "triangle.obj")
+	err := os.WriteFile(path, []byte(`
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vn 0 0 1
+vn 0 1 0
+vn 1 0 0
+f 1//1 2//2 3//3
+`), 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mesh, err := LoadOBJ(path, materials.NewLambertian(rtmath.NewVec3(1, 0, 0)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := len(mesh.Triangles), 1; got != want {
+		t.Fatalf("len(mesh.Triangles) = %d, want %d", got, want)
+	}
+	triangle := mesh.Triangles[0]
+	if !triangle.Smooth {
+		t.Fatal("triangle.Smooth = false, want true")
+	}
+	if triangle.NormalA != rtmath.NewVec3(0, 0, 1) {
+		t.Fatalf("triangle.NormalA = %#v", triangle.NormalA)
+	}
+	if triangle.NormalB != rtmath.NewVec3(0, 1, 0) {
+		t.Fatalf("triangle.NormalB = %#v", triangle.NormalB)
+	}
+	if triangle.NormalC != rtmath.NewVec3(1, 0, 0) {
+		t.Fatalf("triangle.NormalC = %#v", triangle.NormalC)
+	}
+}
+
 func TestLoadOBJWithMaterialsUsesMTLColor(t *testing.T) {
 	dir := t.TempDir()
 	objPath := filepath.Join(dir, "model.obj")

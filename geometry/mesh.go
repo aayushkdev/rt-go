@@ -27,6 +27,11 @@ func (m *Mesh) AddTriangle(a, b, c rtmath.Point3, material materials.Material) {
 	m.Tree = nil
 }
 
+func (m *Mesh) AddSmoothTriangle(a, b, c rtmath.Point3, normalA, normalB, normalC rtmath.Vec3, material materials.Material) {
+	m.Triangles = append(m.Triangles, NewSmoothTriangle(a, b, c, normalA, normalB, normalC, material))
+	m.Tree = nil
+}
+
 func (m Mesh) Bounds() (rtmath.Point3, rtmath.Point3, bool) {
 	if len(m.Triangles) == 0 {
 		return rtmath.Point3{}, rtmath.Point3{}, false
@@ -48,6 +53,11 @@ func (m *Mesh) Scale(factor float64) {
 		m.Triangles[i].A = m.Triangles[i].A.Mul(factor)
 		m.Triangles[i].B = m.Triangles[i].B.Mul(factor)
 		m.Triangles[i].C = m.Triangles[i].C.Mul(factor)
+		if m.Triangles[i].Smooth && factor < 0 {
+			m.Triangles[i].NormalA = m.Triangles[i].NormalA.Neg()
+			m.Triangles[i].NormalB = m.Triangles[i].NormalB.Neg()
+			m.Triangles[i].NormalC = m.Triangles[i].NormalC.Neg()
+		}
 	}
 	m.Tree = nil
 }

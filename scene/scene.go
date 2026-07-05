@@ -40,10 +40,10 @@ func loadFigurine(material materials.Material) geometry.Hittable {
 		return fallbackPyramid(material)
 	}
 
-	figurine.FitHeight(1.5)
-	_, max, ok := figurine.Bounds()
+	figurine.FitHeight(1.0)
+	min, max, ok := figurine.Bounds()
 	if ok {
-		figurine.Translate(rtmath.NewVec3(-max.X/2, 0, -3.1-max.Z/2))
+		figurine.Translate(rtmath.NewVec3(-max.X/2, 0.02-min.Y, -3.1-max.Z/2))
 	}
 	figurine.BuildBVH()
 

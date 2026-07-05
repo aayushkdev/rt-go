@@ -29,6 +29,7 @@ func loadOBJ(path string, material materials.Material, useMaterials bool) (geome
 	defer file.Close()
 
 	var vertices []rtmath.Point3
+	var normals []rtmath.Vec3
 	mesh := geometry.Mesh{}
 	materialsByName := map[string]materials.Material{}
 	currentMaterial := material
@@ -58,8 +59,14 @@ func loadOBJ(path string, material materials.Material, useMaterials bool) (geome
 				return geometry.Mesh{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
 			}
 			vertices = append(vertices, vertex)
+		case "vn":
+			normal, err := parseOBJVertex(fields)
+			if err != nil {
+				return geometry.Mesh{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
+			normals = append(normals, rtmath.UnitVector(normal))
 		case "f":
-			if err := addOBJFace(&mesh, vertices, fields[1:], currentMaterial); err != nil {
+			if err := addOBJFace(&mesh, vertices, normals, fields[1:], currentMaterial); err != nil {
 				return geometry.Mesh{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
 			}
 		}
@@ -118,42 +125,84 @@ func parseOBJVertex(fields []string) (rtmath.Point3, error) {
 	return rtmath.NewVec3(x, y, z), nil
 }
 
-func addOBJFace(mesh *geometry.Mesh, vertices []rtmath.Point3, tokens []string, material materials.Material) error {
+func addOBJFace(mesh *geometry.Mesh, vertices []rtmath.Point3, normals []rtmath.Vec3, tokens []string, material materials.Material) error {
 	if len(tokens) < 3 {
 		return fmt.Errorf("face needs at least 3 vertices")
 	}
 
-	face := make([]rtmath.Point3, 0, len(tokens))
+	face := make([]objFaceVertex, 0, len(tokens))
 	for _, token := range tokens {
-		index, err := parseOBJFaceIndex(token, len(vertices))
+		vertex, err := parseOBJFaceVertex(token, len(vertices), len(normals))
 		if err != nil {
 			return err
 		}
-		face = append(face, vertices[index])
+		face = append(face, vertex)
 	}
 
 	for i := 1; i < len(face)-1; i++ {
-		mesh.AddTriangle(face[0], face[i], face[i+1], material)
+		addOBJTriangle(mesh, vertices, normals, face[0], face[i], face[i+1], material)
 	}
 
 	return nil
 }
 
-func parseOBJFaceIndex(token string, vertexCount int) (int, error) {
-	vertexIndexText := strings.Split(token, "/")[0]
-	if vertexIndexText == "" {
-		return 0, fmt.Errorf("missing face vertex index")
+type objFaceVertex struct {
+	VertexIndex int
+	NormalIndex int
+	HasNormal   bool
+}
+
+func addOBJTriangle(mesh *geometry.Mesh, vertices []rtmath.Point3, normals []rtmath.Vec3, a, b, c objFaceVertex, material materials.Material) {
+	if a.HasNormal && b.HasNormal && c.HasNormal {
+		mesh.AddSmoothTriangle(
+			vertices[a.VertexIndex],
+			vertices[b.VertexIndex],
+			vertices[c.VertexIndex],
+			normals[a.NormalIndex],
+			normals[b.NormalIndex],
+			normals[c.NormalIndex],
+			material,
+		)
+		return
 	}
 
-	index, err := strconv.Atoi(vertexIndexText)
+	mesh.AddTriangle(vertices[a.VertexIndex], vertices[b.VertexIndex], vertices[c.VertexIndex], material)
+}
+
+func parseOBJFaceVertex(token string, vertexCount, normalCount int) (objFaceVertex, error) {
+	parts := strings.Split(token, "/")
+	if len(parts) == 0 || parts[0] == "" {
+		return objFaceVertex{}, fmt.Errorf("missing face vertex index")
+	}
+
+	vertexIndex, err := parseOBJIndex(parts[0], vertexCount)
 	if err != nil {
-		return 0, fmt.Errorf("parse face vertex index: %w", err)
+		return objFaceVertex{}, fmt.Errorf("parse face vertex index: %w", err)
+	}
+
+	faceVertex := objFaceVertex{VertexIndex: vertexIndex}
+	if len(parts) >= 3 && parts[2] != "" && normalCount > 0 {
+		normalIndex, err := parseOBJIndex(parts[2], normalCount)
+		if err != nil {
+			return objFaceVertex{}, fmt.Errorf("parse face normal index: %w", err)
+		}
+		faceVertex.NormalIndex = normalIndex
+		faceVertex.HasNormal = true
+	}
+
+	return faceVertex, nil
+}
+
+func parseOBJIndex(text string, count int) (int, error) {
+	index, err := strconv.Atoi(text)
+	if err != nil {
+		return 0, err
 	}
 	if index < 0 {
-		index = vertexCount + index + 1
+		index = count + index + 1
 	}
-	if index <= 0 || index > vertexCount {
-		return 0, fmt.Errorf("face vertex index %d out of range", index)
+	if index <= 0 || index > count {
+		return 0, fmt.Errorf("index %d out of range", index)
 	}
 
 	return index - 1, nil
