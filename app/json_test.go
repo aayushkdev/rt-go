@@ -223,6 +223,52 @@ func TestMaterialFromJSONSupportsTexturedMetal(t *testing.T) {
 	}
 }
 
+func TestMaterialFromJSONSupportsPlastic(t *testing.T) {
+	specular := 0.35
+	material, materialType, err := materialFromJSON(fileMaterial{
+		Type: "plastic",
+		Texture: fileTexture{
+			Type:  "solid",
+			Color: []float64{0.9, 0.1, 0.05},
+		},
+		Specular:  &specular,
+		Roughness: 0.18,
+	})
+	if err != nil {
+		t.Fatalf("build material: %v", err)
+	}
+	if materialType != "plastic" {
+		t.Fatalf("materialType = %q, want plastic", materialType)
+	}
+
+	plastic, ok := material.(materials.Plastic)
+	if !ok {
+		t.Fatalf("material = %T, want materials.Plastic", material)
+	}
+	color := plastic.Albedo.Value(0, 0, rtmath.Point3{})
+	if color != rtmath.NewVec3(0.9, 0.1, 0.05) {
+		t.Fatalf("plastic albedo = %#v", color)
+	}
+	if plastic.SpecularStrength != 0.35 {
+		t.Fatalf("plastic specular = %v, want 0.35", plastic.SpecularStrength)
+	}
+	if plastic.Roughness != 0.18 {
+		t.Fatalf("plastic roughness = %v, want 0.18", plastic.Roughness)
+	}
+}
+
+func TestMaterialFromJSONRejectsInvalidPlasticSpecular(t *testing.T) {
+	specular := 1.2
+	_, _, err := materialFromJSON(fileMaterial{
+		Type:     "plastic",
+		Color:    []float64{0.9, 0.1, 0.05},
+		Specular: &specular,
+	})
+	if err == nil {
+		t.Fatal("expected invalid specular error")
+	}
+}
+
 func TestMaterialFromJSONSupportsTintedGlass(t *testing.T) {
 	material, materialType, err := materialFromJSON(fileMaterial{
 		Type:       "glass",

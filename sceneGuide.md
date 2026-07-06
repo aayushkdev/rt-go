@@ -212,7 +212,22 @@ Textured metal:
 set, the glass is clear white. `roughness` is optional. `0` is clear glass;
 higher values blur reflection and refraction for a frosted look.
 
-### 4.4 Light
+### 4.4 Plastic
+
+```json
+"material": {
+  "type": "plastic",
+  "texture": { "type": "solid", "color": [0.9, 0.1, 0.05] },
+  "specular": 0.35,
+  "roughness": 0.18
+}
+```
+
+Plastic mixes a colored diffuse body with a white glossy highlight.
+`specular` controls how often the glossy reflection is used. `roughness`
+controls how sharp or soft that highlight is.
+
+### 4.5 Light
 
 ```json
 "material": {
@@ -223,13 +238,14 @@ higher values blur reflection and refraction for a frosted look.
 
 Field | Used by | Meaning
 --- | --- | ---
-`type` | all | `matte`, `metal`, `glass`, or `light`.
-`color` | matte, metal, light | Base color or emission color. For matte/metal this is short form for a solid texture.
-`texture` | matte, metal | Surface albedo texture. Supports `solid`, `checker`, `image`, and `noise`.
+`type` | all | `matte`, `metal`, `plastic`, `glass`, or `light`.
+`color` | matte, metal, plastic, light | Base color or emission color. For matte/metal/plastic this is short form for a solid texture.
+`texture` | matte, metal, plastic | Surface albedo texture. Supports `solid`, `checker`, `image`, and `noise`.
 `fuzz` | metal | Reflection roughness.
+`specular` | plastic | Glossy reflection strength. Use `0` to `1`.
 `refraction` | glass | Refraction index.
 `tint` | glass | Optional color/texture filter for transmitted and reflected glass rays.
-`roughness` | glass | Direction blur for rough/frosted glass. Use `0` to `1`.
+`roughness` | glass, plastic | Glass direction blur or plastic highlight blur. Use `0` to `1`.
 
 ## 5. Common object fields
 

@@ -1,7 +1,7 @@
 # rt-go
 
 rt-go is a small path tracer written in Go. Scenes are described with JSON and
-can contain spheres, boxes, quads, triangles, OBJ meshes, matte/metal/glass
+can contain spheres, boxes, quads, triangles, OBJ meshes, matte/metal/glass/plastic
 materials, and emissive lights.
 
 ![Cornell render](outputs/connel.png)
@@ -45,6 +45,7 @@ Materials and lights:
 - Dielectric glass materials
 - Tinted glass materials
 - Rough/frosted glass materials
+- Glossy plastic materials
 - Diffuse light materials
 - One-sided emissive lights
 - Weighted sampling targets

@@ -44,6 +44,7 @@ type fileMaterial struct {
 	Texture    fileTexture `json:"texture"`
 	Tint       fileTexture `json:"tint"`
 	Fuzz       float64     `json:"fuzz"`
+	Specular   *float64    `json:"specular"`
 	Roughness  float64     `json:"roughness"`
 	Refraction float64     `json:"refraction"`
 }
@@ -337,6 +338,22 @@ func materialFromJSON(material fileMaterial) (materials.Material, string, error)
 			return nil, "", err
 		}
 		return materials.NewTexturedMetal(texture, material.Fuzz), "metal", nil
+	case "plastic":
+		if material.Roughness < 0 || material.Roughness > 1 {
+			return nil, "", fmt.Errorf("roughness must be between 0 and 1")
+		}
+		specular := 0.25
+		if material.Specular != nil {
+			if *material.Specular < 0 || *material.Specular > 1 {
+				return nil, "", fmt.Errorf("specular must be between 0 and 1")
+			}
+			specular = *material.Specular
+		}
+		texture, err := textureFromJSON(material.Texture, material.Color)
+		if err != nil {
+			return nil, "", err
+		}
+		return materials.NewTexturedPlastic(texture, specular, material.Roughness), "plastic", nil
 	case "glass":
 		if material.Refraction <= 0 {
 			return nil, "", fmt.Errorf("refraction must be greater than zero")
