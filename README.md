@@ -18,6 +18,7 @@ Rendering basics:
 - Cosine-weighted diffuse sampling
 - Mixture PDFs for combining material and light sampling
 - Direct light sampling
+- Russian roulette path termination
 - Configurable image size, samples, max depth, camera, and output path
 - PPM image output with live scanline updates
 

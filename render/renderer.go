@@ -250,9 +250,17 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 		if !ok {
 			return emitted
 		}
+		attenuation := scatter.Attenuation
+		if r.useRussianRoulette(depth) {
+			survival := russianRouletteSurvival(attenuation)
+			if random.Float64() > survival {
+				return emitted
+			}
+			attenuation = attenuation.Div(survival)
+		}
 
 		if scatter.SkipPDF {
-			return emitted.Add(scatter.Attenuation.MulVec(r.rayColor(scatter.Scattered, world, depth-1, random)))
+			return emitted.Add(attenuation.MulVec(r.rayColor(scatter.Scattered, world, depth-1, random)))
 		}
 
 		pdf := scatter.PDF
@@ -273,7 +281,7 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 		scatteringPDF := record.Material.ScatteringPDF(ray, record.HitInfo, scattered)
 		scatterColor := r.rayColor(scattered, world, depth-1, random).
 			Mul(scatteringPDF / pdfValue).
-			MulVec(scatter.Attenuation)
+			MulVec(attenuation)
 
 		return emitted.Add(scatterColor)
 	}
@@ -288,6 +296,27 @@ func (r Renderer) rayColor(ray rtmath.Ray, world geometry.Hittable, depth int, r
 	blue := rtmath.NewVec3(0.5, 0.7, 1.0)
 
 	return white.Mul(1.0 - a).Add(blue.Mul(a))
+}
+
+func (r Renderer) useRussianRoulette(depth int) bool {
+	const minBouncesBeforeRoulette = 5
+
+	return r.MaxDepth-depth >= minBouncesBeforeRoulette
+}
+
+func russianRouletteSurvival(attenuation rtmath.Color) float64 {
+	const minSurvival = 0.05
+	const maxSurvival = 0.95
+
+	survival := stdmath.Max(attenuation.X, stdmath.Max(attenuation.Y, attenuation.Z))
+	if survival < minSurvival {
+		return minSurvival
+	}
+	if survival > maxSurvival {
+		return maxSurvival
+	}
+
+	return survival
 }
 
 func sampleOffset(random *rtmath.Random) float64 {

@@ -33,3 +33,33 @@ func TestStratifiedSampleOffsetSpreadsSamplesAcrossGrid(t *testing.T) {
 		t.Fatalf("last sample = (%v, %v), want upper-right pixel cell", lastU, lastV)
 	}
 }
+
+func TestRussianRouletteSurvivalUsesStrongestColorChannel(t *testing.T) {
+	survival := russianRouletteSurvival(rtmath.NewVec3(0.2, 0.7, 0.4))
+	if survival != 0.7 {
+		t.Fatalf("survival = %v, want 0.7", survival)
+	}
+}
+
+func TestRussianRouletteSurvivalIsClamped(t *testing.T) {
+	low := russianRouletteSurvival(rtmath.NewVec3(0.001, 0.002, 0.003))
+	if low != 0.05 {
+		t.Fatalf("low survival = %v, want 0.05", low)
+	}
+
+	high := russianRouletteSurvival(rtmath.NewVec3(2, 1, 0.5))
+	if high != 0.95 {
+		t.Fatalf("high survival = %v, want 0.95", high)
+	}
+}
+
+func TestRendererUsesRussianRouletteAfterFiveBounces(t *testing.T) {
+	renderer := Renderer{MaxDepth: 10}
+
+	if renderer.useRussianRoulette(6) {
+		t.Fatal("russian roulette should not run before five completed bounces")
+	}
+	if !renderer.useRussianRoulette(5) {
+		t.Fatal("russian roulette should run after five completed bounces")
+	}
+}

@@ -74,6 +74,10 @@ Field | Required | Meaning
 Normal colors are usually between `0` and `1`. Light colors can be much higher,
 like `[15, 15, 15]`.
 
+The renderer also uses Russian roulette after several bounces. `max_depth`
+still sets a hard upper limit, but weak paths can end earlier to avoid wasting
+work on rays that contribute very little.
+
 ## 4. Materials and textures
 
 Objects use a `material` field unless noted otherwise.
